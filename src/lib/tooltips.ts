@@ -87,6 +87,30 @@ export const tooltips: Record<string, string> = {
     "Fixes music for all Static Pokemon encounters — encounters with special music will still play the correct song even after randomization.",
   staticLevelModified:
     "Enables a percentage-based modifier on Static Pokemon levels.",
+  "totemPokemonMod.UNCHANGED":
+    "Don't change Totem Pokemon species.",
+  "totemPokemonMod.RANDOM":
+    "Randomize Totem Pokemon species.",
+  "totemPokemonMod.SIMILAR_STRENGTH":
+    "Replace every Totem Pokemon with a Pokemon of similar strength.",
+  "allyPokemonMod.UNCHANGED":
+    "Don't change Ally Pokemon.",
+  "allyPokemonMod.RANDOM":
+    "Randomize Ally Pokemon completely.",
+  "allyPokemonMod.SIMILAR_STRENGTH":
+    "Replace Ally Pokemon with Pokemon of similar strength.",
+  "auraMod.UNCHANGED":
+    "Don't change auras.",
+  "auraMod.RANDOM":
+    "Auras will be completely randomized. The possible auras are +1/+2/+3 to a single stat or to every stat.",
+  "auraMod.SAME_STRENGTH":
+    "Auras will be randomized to auras with the same net gain of stages. For example, +2 Speed could become +2 Defense.",
+  randomizeTotemHeldItems:
+    "Replace Totem Pokemon held items with different consumable items.",
+  allowTotemAltFormes:
+    "Allows alternate formes of Pokemon to appear as Totem and Ally Pokemon.",
+  totemLevelsModified:
+    "Enables a percentage-based level modifier for every Totem and Ally Pokemon.",
 
   // ── In-Game Trades ────────────────────────────────────────────────────────
   inGameTradesMod:

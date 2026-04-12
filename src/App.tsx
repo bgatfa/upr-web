@@ -12,11 +12,12 @@ import { PokemonTraitsTab } from "@/components/tabs/PokemonTraitsTab";
 import { MovesetsTab } from "@/components/tabs/MovesetsTab";
 import { TrainersTab } from "@/components/tabs/TrainersTab";
 import { WildPokemonTab } from "@/components/tabs/WildPokemonTab";
+import { TotemPokemonTab } from "@/components/tabs/TotemPokemonTab";
 import { ItemsTab } from "@/components/tabs/ItemsTab";
 import { ImportExportTab } from "@/components/tabs/ImportExportTab";
 import { MiscTweaksTab } from "@/components/tabs/MiscTweaksTab";
 
-type TabId = "general" | "traits" | "movesets" | "trainers" | "wild" | "items" | "misc" | "import-export";
+type TabId = "general" | "traits" | "movesets" | "trainers" | "wild" | "totem" | "items" | "misc" | "import-export";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "general", label: "General" },
@@ -24,6 +25,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "movesets", label: "Moves & Movesets" },
   { id: "trainers", label: "Trainer Pokemon" },
   { id: "wild", label: "Wild Pokemon" },
+  { id: "totem", label: "Totem Pokemon" },
   { id: "items", label: "Items & Trades" },
   { id: "misc", label: "Misc Tweaks" },
   { id: "import-export", label: "Import / Export" },
@@ -171,6 +173,7 @@ export default function App() {
             {activeTab === "movesets"      && <MovesetsTab s={settings} set={set} rom={romProfile} />}
             {activeTab === "trainers"      && <TrainersTab s={settings} set={set} rom={romProfile} />}
             {activeTab === "wild"          && <WildPokemonTab s={settings} set={set} rom={romProfile} />}
+            {activeTab === "totem"         && <TotemPokemonTab s={settings} set={set} rom={romProfile} />}
             {activeTab === "items"         && <ItemsTab s={settings} set={set} rom={romProfile} />}
             {activeTab === "misc"          && <MiscTweaksTab s={settings} set={set} rom={romProfile} />}
             {activeTab === "import-export" && <ImportExportTab s={settings} onChange={applyPatch} />}

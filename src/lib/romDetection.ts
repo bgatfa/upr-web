@@ -36,6 +36,7 @@ export interface RomProfile {
   hasFunctionalFormes: boolean;
   hasMegaEvolutions: boolean;
   hasStaticAltFormes: boolean;
+  hasTotemPokemon: boolean;
   miscTweakMask: number;
 }
 
@@ -237,6 +238,8 @@ function buildCapabilities(family: RomProfile["family"]) {
       family === "xy" || family === "oras" || family === "sm" || family === "usum",
     hasStaticAltFormes:
       family === "xy" || family === "oras" || family === "sm" || family === "usum",
+    hasTotemPokemon:
+      family === "sm" || family === "usum",
     miscTweakMask: getMiscTweakMask(family),
   };
 }
@@ -332,6 +335,15 @@ export function sanitizeSettingsForRom(settings: UPRSettings, rom: RomProfile | 
   }
   if (!rom.hasStaticAltFormes) {
     next.allowStaticAltFormes = false;
+  }
+  if (!rom.hasTotemPokemon) {
+    next.totemPokemonMod = "UNCHANGED";
+    next.allyPokemonMod = "UNCHANGED";
+    next.auraMod = "UNCHANGED";
+    next.randomizeTotemHeldItems = false;
+    next.totemLevelsModified = false;
+    next.totemLevelModifier = 0;
+    next.allowTotemAltFormes = false;
   }
 
   next.currentRestrictions &= generationRestrictionMask(rom.generation);

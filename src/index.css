@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 13px;
+  }
+  body {
+    @apply bg-[#e0e0e0] text-gray-900;
+  }
+}
+
+@layer components {
+  /* ── Tabs ───────────────────────────────── */
+  .tab-btn {
+    @apply px-4 py-1.5 text-sm font-medium border border-b-0 rounded-t transition-colors cursor-pointer select-none;
+  }
+  .tab-btn-active {
+    @apply bg-white border-gray-400 text-gray-900 relative z-10;
+  }
+  .tab-btn-inactive {
+    @apply bg-[#d4d4d4] border-gray-400 text-gray-600 hover:bg-[#dcdcdc];
+  }
+
+  /* ── Panels (like Swing TitledBorder) ─── */
+  .panel {
+    @apply border border-gray-400 rounded bg-white relative mt-3 mb-3 px-3 pb-3 pt-4;
+  }
+  .panel-title {
+    @apply absolute -top-2.5 left-2 px-1 text-xs font-bold text-gray-600 bg-white uppercase tracking-wide;
+  }
+
+  /* ── Field rows ─────────────────────────── */
+  .field-row {
+    @apply flex flex-wrap gap-x-4 gap-y-1.5;
+  }
+
+  /* ── Nested / sub-options ───────────────── */
+  /* Applied to options that appear only when a parent toggle is on  */
+  .sub-options {
+    @apply mt-2 ml-4 pl-3 border-l-2 border-blue-300 flex flex-col gap-1.5;
+  }
+  .sub-row {
+    @apply ml-4 pl-3 border-l-2 border-blue-300 mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5;
+  }
+
+  /* ── Controls ─────────────────────────── */
+  .checkbox-label {
+    @apply flex items-center gap-1.5 text-sm text-gray-800 select-none leading-tight;
+  }
+  .checkbox-label input[type="checkbox"] {
+    @apply w-3.5 h-3.5 accent-blue-600 cursor-pointer shrink-0;
+  }
+  .radio-label {
+    @apply flex items-center gap-1.5 text-sm text-gray-800 select-none leading-tight;
+  }
+  .radio-label input[type="radio"] {
+    @apply w-3.5 h-3.5 accent-blue-600 cursor-pointer shrink-0;
+  }
+  .input-field {
+    @apply bg-white border border-gray-400 rounded px-2 py-0.5 text-sm text-gray-900
+           focus:outline-none focus:ring-1 focus:ring-blue-400 w-20;
+  }
+  .select-field {
+    @apply bg-white border border-gray-400 rounded px-1.5 py-0.5 text-sm text-gray-900
+           focus:outline-none focus:ring-1 focus:ring-blue-400;
+  }
+
+  /* ── Buttons ─────────────────────────── */
+  .btn-primary {
+    @apply bg-[#4CAF50] hover:bg-[#43A047] active:bg-[#388E3C]
+           disabled:opacity-50 disabled:cursor-not-allowed
+           text-white font-semibold px-5 py-1.5 rounded border border-[#388E3C]
+           shadow-sm transition-colors text-sm;
+  }
+  .btn-secondary {
+    @apply bg-[#e8e8e8] hover:bg-[#d8d8d8] active:bg-[#c8c8c8]
+           text-gray-800 font-medium px-4 py-1.5 rounded border border-gray-400
+           shadow-sm transition-colors text-sm;
+  }
+}

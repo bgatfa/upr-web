@@ -108,6 +108,10 @@ export function MovesetsTab({ s, set, rom }: Props) {
             <input type="checkbox" checked={s.randomizeMoveCategory} disabled={!hasPhysicalSpecialSplit} onChange={e => set("randomizeMoveCategory", e.target.checked)} />
             Randomize Category (Phys/Spec)<Tooltip text={tooltips.randomizeMoveCategory} />
           </span>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.randomizeMoveNames} onChange={e => set("randomizeMoveNames", e.target.checked)} />
+            Randomize Move Names<Tooltip text={tooltips.randomizeMoveNames} />
+          </span>
         </div>
       </div>
 

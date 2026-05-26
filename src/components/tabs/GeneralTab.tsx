@@ -57,6 +57,16 @@ export function GeneralTab({ s, set, patch, rom }: Props) {
             <input type="checkbox" checked={s.makeEvolutionsEasier} onChange={e => set("makeEvolutionsEasier", e.target.checked)} />
             Make Evolutions Easier<Tooltip text={tooltips.makeEvolutionsEasier} />
           </span>
+          {s.makeEvolutionsEasier && (
+            <div className="sub-row items-center">
+              <span className="text-xs text-gray-500">Final-stage level:</span>
+              <input type="range" min={10} max={70} className="w-32"
+                value={s.makeEvolutionsEasierLvl}
+                onChange={e => set("makeEvolutionsEasierLvl", Number(e.target.value))} />
+              <span className="text-sm text-gray-700 w-10 font-mono">{s.makeEvolutionsEasierLvl}</span>
+              <Tooltip text={tooltips.makeEvolutionsEasierLvl} />
+            </div>
+          )}
           <span className="checkbox-label">
             <input type="checkbox" checked={s.removeTimeBasedEvolutions} onChange={e => set("removeTimeBasedEvolutions", e.target.checked)} />
             Remove Time-Based Evolutions<Tooltip text={tooltips.removeTimeBasedEvos} />
@@ -66,8 +76,14 @@ export function GeneralTab({ s, set, patch, rom }: Props) {
             Race Mode<Tooltip text={tooltips.raceMode} />
           </span>
           <span className="checkbox-label">
-            <input type="checkbox" checked={s.blockBrokenMoves} onChange={e => set("blockBrokenMoves", e.target.checked)} />
-            Block Broken Moves<Tooltip text={tooltips.blockBrokenMovesetMoves} />
+            <input type="checkbox" checked={s.estimateLevelForEvolutionImprovements}
+              onChange={e => set("estimateLevelForEvolutionImprovements", e.target.checked)} />
+            Estimate Level for Evolution Tweaks<Tooltip text={tooltips.estimateLevelForEvolutionImprovements} />
+          </span>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.randomizeIntroMon}
+              onChange={e => set("randomizeIntroMon", e.target.checked)} />
+            Randomize Intro Pokemon<Tooltip text={tooltips.randomizeIntroMon} />
           </span>
           <span className="checkbox-label">
             <input type="checkbox" checked={s.banIrregularAltFormes} onChange={e => set("banIrregularAltFormes", e.target.checked)} />

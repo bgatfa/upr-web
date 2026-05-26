@@ -1,10 +1,11 @@
 // Encodes UPRSettings → binary .rnqs file (Uint8Array)
-// Mirrors com.dabomstew.pkrandom.Settings.write() / toString()
-// VERSION 322 (UPR-ZX 4.6.1)
+// Mirrors com.uprfvx.random.Settings.toStringWithoutVersion()
+// VERSION 422 (UPR-FVX 1.5.1)
 
-import type { UPRSettings } from "@/types/settings";
+import { POKEMON_TYPE_INDEX, type PokemonType, type UPRSettings } from "@/types/settings";
 
-const UPR_VERSION = 322; // Version.VERSION
+const UPR_VERSION = 422; // Version.LATEST.id
+const LENGTH_OF_SETTINGS_DATA = 67;
 
 // ─── CRC-32 (ISO 3309, same as java.util.zip.CRC32) ─────────────────────────
 
@@ -25,7 +26,7 @@ function crc32(bytes: Uint8Array): number {
   for (const b of bytes) {
     crc = CRC_TABLE[(crc ^ b) & 0xff] ^ (crc >>> 8);
   }
-  return (crc ^ 0xffffffff) | 0; // signed int32 to match Java's (int)checksum.getValue()
+  return (crc ^ 0xffffffff) | 0;
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -42,7 +43,12 @@ function putInt32BE(arr: number[], v: number) {
   arr.push((v >>> 24) & 0xff, (v >>> 16) & 0xff, (v >>> 8) & 0xff, v & 0xff);
 }
 
+function putInt32LE(arr: number[], v: number) {
+  arr.push(v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff);
+}
+
 function put2ByteLE(arr: number[], v: number) {
+  // FVX's write2ByteIntBigEndian() is misnamed: implementation is little-endian.
   arr.push(v & 0xff, (v >> 8) & 0xff);
 }
 
@@ -57,16 +63,22 @@ function expCurveToByte(curve: UPRSettings["selectedEXPCurve"]): number {
   }
 }
 
+// Trainer/wild/static/totem/evolution level modifiers in FVX are stored as
+// signed int8 in the range [-128, 127] with a shift of -28 from the source
+// range [-100, 155]. Java `out.write(int)` keeps the low 8 bits, so we mask.
+function signedInt8Shift(modifier: number): number {
+  return (modifier - 28) & 0xff;
+}
+
 // ─── main encoder ────────────────────────────────────────────────────────────
 
 /**
- * Encodes settings to a binary .rnqs Uint8Array that UPR's CLI can read with -s.
+ * Encodes settings to a binary .rnqs Uint8Array that UPR-FVX's CLI can read with -s.
  */
 export function encodeSettings(s: UPRSettings): Uint8Array {
-  // Step 1: build the 51-byte binary payload + romName + checksum
   const body: number[] = [];
 
-  // [0] general options
+  // 0: general options #1 + estimateLevelForEvolutionImprovements (bit 7)
   body.push(bits(
     s.changeImpossibleEvolutions,
     s.updateMoves,
@@ -75,9 +87,10 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.randomizeTrainerClassNames,
     s.makeEvolutionsEasier,
     s.removeTimeBasedEvolutions,
+    s.estimateLevelForEvolutionImprovements,
   ));
 
-  // [1] base stats
+  // 1: base stats
   body.push(bits(
     s.baseStatsFollowEvolutions,
     s.baseStatisticsMod === "RANDOM",
@@ -89,19 +102,20 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.assignEvoStatsRandomly,
   ));
 
-  // [2] types + general
+  // 2: species types (FVX dropped raceMode/blockBrokenMoves/limitPokemon here;
+  //                   those moved to byte 65)
   body.push(bits(
-    s.typesMod === "RANDOM_FOLLOW_EVOLUTIONS",
-    s.typesMod === "COMPLETELY_RANDOM",
-    s.typesMod === "UNCHANGED",
-    s.raceMode,
-    s.blockBrokenMoves,
-    s.limitPokemon,
+    s.speciesTypesMod === "RANDOM_FOLLOW_EVOLUTIONS",
+    s.speciesTypesMod === "COMPLETELY_RANDOM",
+    s.speciesTypesMod === "UNCHANGED",
+    false,
+    false,
+    false,
     s.typesFollowMegaEvolutions,
     s.dualTypeOnly,
   ));
 
-  // [3] abilities
+  // 3: abilities
   body.push(bits(
     s.abilitiesMod === "UNCHANGED",
     s.abilitiesMod === "RANDOMIZE",
@@ -113,7 +127,7 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.abilitiesFollowMegaEvolutions,
   ));
 
-  // [4] starters
+  // 4: starters (bit 7 = RANDOM_BASIC, new in FVX)
   body.push(bits(
     s.startersMod === "CUSTOM",
     s.startersMod === "COMPLETELY_RANDOM",
@@ -122,14 +136,15 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.randomizeStartersHeldItems,
     s.banBadRandomStarterHeldItems,
     s.allowStarterAltFormes,
+    s.startersMod === "RANDOM_BASIC",
   ));
 
-  // [5-10] custom starters (little-endian 2-byte each, value = index - 1)
-  put2ByteLE(body, (s.customStarters[0] ?? 1) - 1);
-  put2ByteLE(body, (s.customStarters[1] ?? 4) - 1);
-  put2ByteLE(body, (s.customStarters[2] ?? 7) - 1);
+  // 5-10: custom starters (LE, 1-based species index — FVX writes raw value)
+  put2ByteLE(body, s.customStarters[0] ?? 1);
+  put2ByteLE(body, s.customStarters[1] ?? 4);
+  put2ByteLE(body, s.customStarters[2] ?? 7);
 
-  // [11] movesets
+  // 11: movesets
   const movesetsBase = bits(
     s.movesetsMod === "COMPLETELY_RANDOM",
     s.movesetsMod === "RANDOM_PREFER_SAME_TYPE",
@@ -140,10 +155,10 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
   );
   body.push((movesetsBase | (((s.guaranteedMoveCount - 2) & 0x3) << 6)) & 0xff);
 
-  // [12] movesets good damaging
+  // 12: movesets good damaging
   body.push(((s.movesetsForceGoodDamaging ? 0x80 : 0) | (s.movesetsGoodDamagingPercent & 0x7f)) & 0xff);
 
-  // [13] trainer pokemon
+  // 13: trainers (8 enum values: 6 ZX + 2 FVX new)
   body.push(bits(
     s.trainersMod === "UNCHANGED",
     s.trainersMod === "RANDOM",
@@ -151,36 +166,54 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.trainersMod === "MAINPLAYTHROUGH",
     s.trainersMod === "TYPE_THEMED",
     s.trainersMod === "TYPE_THEMED_ELITE4_GYMS",
+    s.trainersMod === "KEEP_THEMED",
+    s.trainersMod === "KEEP_THEME_OR_PRIMARY",
   ));
 
-  // [14] trainer force fully evolved
-  body.push(((s.trainersForceFullyEvolved ? 0x80 : 0) | (s.trainersForceFullyEvolvedLevel & 0x7f)) & 0xff);
+  // 14: trainer evolution level modifier (NEW in FVX)
+  body.push(signedInt8Shift(s.trainersEvolutionLevelModifier));
 
-  // [15] wild pokemon
+  // 15: wild pokemon (areas) — FVX restructure
   body.push(bits(
-    s.wildPokemonRestrictionMod === "CATCH_EM_ALL",
-    s.wildPokemonMod === "AREA_MAPPING",
-    s.wildPokemonRestrictionMod === "NONE",
-    s.wildPokemonRestrictionMod === "TYPE_THEME_AREAS",
-    s.wildPokemonMod === "GLOBAL_MAPPING",
-    s.wildPokemonMod === "RANDOM",
-    s.wildPokemonMod === "UNCHANGED",
+    !s.randomizeWildPokemon,                              // bit 0 (inverted)
+    s.wildPokemonZoneMod === "NONE",                      // bit 1
+    s.wildPokemonZoneMod === "ENCOUNTER_SET",             // bit 2
+    s.wildPokemonZoneMod === "GAME",                      // bit 3
+    s.keepWildEvolutionFamilies,                          // bit 4
+    s.wildPokemonZoneMod === "NAMED_LOCATION",            // bit 5
+    s.wildPokemonZoneMod === "MAP",                       // bit 6
+    s.splitWildZoneByEncounterTypes,                      // bit 7
+  ));
+
+  // 16: wild pokemon (restriction)
+  body.push(bits(
+    false,                                                 // bit 0
+    s.similarStrengthEncounters,                           // bit 1
+    s.catchEmAllEncounters,                                // bit 2
+  ));
+
+  // 17: wild pokemon (types/evolutions) — NEW in FVX
+  body.push(bits(
+    s.wildPokemonTypeMod === "NONE",                       // bit 0
+    s.wildPokemonTypeMod === "KEEP_PRIMARY",               // bit 1
+    s.wildPokemonTypeMod === "RANDOM_THEMES",              // bit 2
+    s.keepWildTypeThemes,                                  // bit 3
+    s.wildPokemonEvolutionMod === "NONE",                  // bit 4
+    s.wildPokemonEvolutionMod === "BASIC_ONLY",            // bit 5
+    s.wildPokemonEvolutionMod === "KEEP_STAGE",            // bit 6
+  ));
+
+  // 18: wild pokemon (various)
+  body.push(bits(
     s.useTimeBasedEncounters,
-  ));
-
-  // [16] wild pokemon 2
-  body.push(bits(
     s.useMinimumCatchRate,
     s.blockWildLegendaries,
-    s.wildPokemonRestrictionMod === "SIMILAR_STRENGTH",
     s.randomizeWildPokemonHeldItems,
     s.banBadRandomWildPokemonHeldItems,
-    false,
-    false,
     s.balanceShakingGrass,
   ));
 
-  // [17] static pokemon
+  // 19: static pokemon
   body.push(bits(
     s.staticPokemonMod === "UNCHANGED",
     s.staticPokemonMod === "RANDOM_MATCHING",
@@ -192,7 +225,7 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.swapStaticMegaEvos,
   ));
 
-  // [18] TM randomization
+  // 20: TM randomization
   body.push(bits(
     s.tmsHmsCompatibilityMod === "COMPLETELY_RANDOM",
     s.tmsHmsCompatibilityMod === "RANDOM_PREFER_TYPE",
@@ -204,13 +237,13 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.tmsHmsCompatibilityMod === "FULL",
   ));
 
-  // [19] TMs part 2
+  // 21: TMs part 2
   body.push(bits(s.fullHMCompat, s.tmsFollowEvolutions, s.tutorFollowEvolutions));
 
-  // [20] TMs good damaging
+  // 22: TMs good damaging
   body.push(((s.tmsForceGoodDamaging ? 0x80 : 0) | (s.tmsGoodDamagingPercent & 0x7f)) & 0xff);
 
-  // [21] move tutors
+  // 23: move tutors
   body.push(bits(
     s.moveTutorsCompatibilityMod === "COMPLETELY_RANDOM",
     s.moveTutorsCompatibilityMod === "RANDOM_PREFER_TYPE",
@@ -222,10 +255,10 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.moveTutorsCompatibilityMod === "FULL",
   ));
 
-  // [22] tutors good damaging
+  // 24: tutors good damaging
   body.push(((s.tutorsForceGoodDamaging ? 0x80 : 0) | (s.tutorsGoodDamagingPercent & 0x7f)) & 0xff);
 
-  // [23] in-game trades
+  // 25: in-game trades
   body.push(bits(
     s.inGameTradesMod === "RANDOMIZE_GIVEN_AND_REQUESTED",
     s.inGameTradesMod === "RANDOMIZE_GIVEN",
@@ -236,7 +269,7 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.inGameTradesMod === "UNCHANGED",
   ));
 
-  // [24] field items
+  // 26: field items
   body.push(bits(
     s.fieldItemsMod === "RANDOM",
     s.fieldItemsMod === "SHUFFLE",
@@ -245,7 +278,7 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.fieldItemsMod === "RANDOM_EVEN",
   ));
 
-  // [25] move randomizers + static music
+  // 27: move randomizers + static music + randomizeMoveNames (bit 6, NEW in FVX)
   body.push(bits(
     s.randomizeMovePowers,
     s.randomizeMoveAccuracies,
@@ -253,9 +286,10 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.randomizeMoveTypes,
     s.randomizeMoveCategory,
     s.correctStaticMusic,
+    s.randomizeMoveNames,
   ));
 
-  // [26] evolutions
+  // 28: evolutions 1
   body.push(bits(
     s.evolutionsMod === "UNCHANGED",
     s.evolutionsMod === "RANDOM",
@@ -267,7 +301,7 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.evolutionsMod === "RANDOM_EVERY_LEVEL",
   ));
 
-  // [27] trainer pokemon misc
+  // 29: trainer misc (bit 7 = trainersAvoidDuplicates, NEW in FVX)
   body.push(bits(
     s.trainersUsePokemonOfSimilarStrength,
     s.rivalCarriesStarterThroughout,
@@ -276,19 +310,19 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.trainersBlockEarlyWonderGuard,
     s.swapTrainerMegaEvos,
     s.shinyChance,
-    s.betterTrainerMovesets,
+    s.trainersAvoidDuplicates,
   ));
 
-  // [28-31] pokemon restrictions (big-endian int32)
-  putInt32BE(body, s.currentRestrictions ?? 0);
+  // 30-33: pokemon restrictions (FVX uses LITTLE-endian int32)
+  putInt32LE(body, s.currentRestrictions ?? 0);
 
-  // [32-35] misc tweaks (big-endian int32)
+  // 34-37: misc tweaks (big-endian int32)
   putInt32BE(body, s.currentMiscTweaks ?? 0);
 
-  // [36] trainer level modifier
-  body.push(((s.trainersLevelModified ? 0x80 : 0) | ((s.trainersLevelModifier + 50) & 0x7f)) & 0xff);
+  // 38: trainer level modifier (signed int8 - 28)
+  body.push(signedInt8Shift(s.trainersLevelModifier));
 
-  // [37] shop items
+  // 39: shop items 1 (FVX moved balanceShopPrices to byte 64; bit 6 unused)
   body.push(bits(
     s.shopItemsMod === "RANDOM",
     s.shopItemsMod === "SHUFFLE",
@@ -296,14 +330,14 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.banBadRandomShopItems,
     s.banRegularShopItems,
     s.banOPShopItems,
-    s.balanceShopPrices,
+    false,
     s.guaranteeEvolutionItems,
   ));
 
-  // [38] wild level modifier
-  body.push(((s.wildLevelsModified ? 0x80 : 0) | ((s.wildLevelModifier + 50) & 0x7f)) & 0xff);
+  // 40: wild level modifier
+  body.push(signedInt8Shift(s.wildLevelModifier));
 
-  // [39] EXP curve mod, block broken moves, alt forme stuff
+  // 41: EXP curve mod, block broken moves, alt forme stuff
   body.push(bits(
     s.expCurveMod === "LEGENDARIES",
     s.expCurveMod === "STRONG_LEGENDARIES",
@@ -315,15 +349,15 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.allowWildAltFormes,
   ));
 
-  // [40] double battle / additional trainer pokemon / weigh abilities
+  // 42: legacy double battle (always 0), additional boss/important, weigh dup abilities
   body.push(
-    (s.doubleBattleMode ? 0x1 : 0) |
+    0 |
     ((s.additionalBossTrainerPokemon & 0x7) << 1) |
     ((s.additionalImportantTrainerPokemon & 0x7) << 4) |
     (s.weighDuplicateAbilitiesTogether ? 0x80 : 0)
   );
 
-  // [41] additional regular trainer / aura / evolution moves / guarantee X
+  // 43: additional regular trainer + aura + evo moves + guarantee X items
   body.push(
     (s.additionalRegularTrainerPokemon & 0x7) |
     (s.auraMod === "UNCHANGED" ? 0x8 : 0) |
@@ -333,7 +367,7 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     (s.guaranteeXItems ? 0x80 : 0)
   );
 
-  // [42] totem pokemon
+  // 44: totem
   body.push(bits(
     s.totemPokemonMod === "UNCHANGED",
     s.totemPokemonMod === "RANDOM",
@@ -345,22 +379,22 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.allowTotemAltFormes,
   ));
 
-  // [43] totem level modifier
-  body.push(((s.totemLevelsModified ? 0x80 : 0) | ((s.totemLevelModifier + 50) & 0x7f)) & 0xff);
+  // 45: totem level modifier (signed int8 - 28)
+  body.push(signedInt8Shift(s.totemLevelModifier));
 
-  // [44] updateBaseStatsToGeneration
+  // 46: updateBaseStatsToGeneration
   body.push(s.updateBaseStatsToGeneration & 0xff);
 
-  // [45] updateMovesToGeneration
+  // 47: updateMovesToGeneration
   body.push(s.updateMovesToGeneration & 0xff);
 
-  // [46] selectedEXPCurve
+  // 48: selectedEXPCurve
   body.push(expCurveToByte(s.selectedEXPCurve));
 
-  // [47] static level modifier
-  body.push(((s.staticLevelModified ? 0x80 : 0) | ((s.staticLevelModifier + 50) & 0x7f)) & 0xff);
+  // 49: static level modifier (signed int8 - 28)
+  body.push(signedInt8Shift(s.staticLevelModifier));
 
-  // [48] trainer held items / ensure two abilities
+  // 50: trainer held items + ensureTwoAbilities + trainersUseLocalPokemon (NEW bit 7)
   body.push(bits(
     s.randomizeHeldItemsForBossTrainerPokemon,
     s.randomizeHeldItemsForImportantTrainerPokemon,
@@ -369,9 +403,10 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.sensibleItemsOnlyForTrainerPokemon,
     s.highestLevelOnlyGetsItemsForTrainerPokemon,
     s.ensureTwoAbilities,
+    s.trainersUseLocalPokemon,
   ));
 
-  // [49] pickup items
+  // 51: pickup items
   body.push(bits(
     s.pickupItemsMod === "RANDOM",
     s.pickupItemsMod === "UNCHANGED",
@@ -379,11 +414,108 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
     s.banIrregularAltFormes,
   ));
 
-  // [50] elite four + min catch rate level
+  // 52: elite four + min catch rate level
   body.push(
     (s.eliteFourUniquePokemonNumber & 0x7) |
     (((s.minimumCatchRateLevel - 1) & 0x7) << 3)
   );
+
+  // 53: starter type mod + no legendaries + no dual types (NEW in FVX)
+  body.push(bits(
+    s.startersTypeMod === "NONE",
+    s.startersTypeMod === "FIRE_WATER_GRASS",
+    s.startersTypeMod === "TRIANGLE",
+    s.startersTypeMod === "UNIQUE",
+    s.startersTypeMod === "SINGLE_TYPE",
+    false,
+    s.startersNoLegendaries,
+    s.startersNoDualTypes,
+  ));
+
+  // 54: starter single-type choice (Type.toInt() + 1, or 0 if null)
+  body.push(typeToByte(s.startersSingleType));
+
+  // 55: pokemon palettes (NEW in FVX)
+  body.push(bits(
+    s.pokemonPalettesMod === "UNCHANGED",
+    s.pokemonPalettesMod === "RANDOM",
+    s.pokemonPalettesFollowTypes,
+    s.pokemonPalettesFollowEvolutions,
+    s.pokemonPalettesShinyFromNormal,
+  ));
+
+  // 56: type effectiveness (NEW in FVX)
+  body.push(bits(
+    s.typeEffectivenessMod === "UNCHANGED",
+    s.typeEffectivenessMod === "RANDOM",
+    s.typeEffectivenessMod === "RANDOM_BALANCED",
+    s.typeEffectivenessMod === "KEEP_IDENTITIES",
+    s.typeEffectivenessMod === "INVERSE",
+    s.inverseTypesRandomImmunities,
+    s.updateTypeEffectiveness,
+  ));
+
+  // 57: evolutions 2 (evosForceGrowth, evosNoConvergence — NEW in FVX)
+  body.push(bits(s.evosForceGrowth, s.evosNoConvergence));
+
+  // 58-60: starter BST limits (12-bit packed)
+  // highEndByte = ((min >> 8) & 0x0F) | ((max >> 4) & 0xF0)
+  const min = s.startersBSTMinimum | 0;
+  const max = s.startersBSTMaximum | 0;
+  const highEndByte = (((min >> 8) & 0x0f) | ((max >> 4) & 0xf0)) & 0xff;
+  body.push(highEndByte);
+  body.push(min & 0xff);
+  body.push(max & 0xff);
+
+  // 61: trainer type diversity + better movesets (NEW in FVX)
+  body.push(bits(
+    s.diverseTypesForBossTrainers,
+    s.diverseTypesForImportantTrainers,
+    s.diverseTypesForRegularTrainers,
+    s.betterBossTrainerMovesets,
+    s.betterImportantTrainerMovesets,
+    s.betterRegularTrainerMovesets,
+  ));
+
+  // 62: battle style (NEW in FVX)
+  // modification bits 0-2 + style bits 3-6
+  const modBits = bits(
+    s.battleStyleModification === "UNCHANGED",
+    s.battleStyleModification === "RANDOM",
+    s.battleStyleModification === "SINGLE_STYLE",
+  );
+  const styleBits = bits(
+    s.battleStyleType === "SINGLE_BATTLE",
+    s.battleStyleType === "DOUBLE_BATTLE",
+    s.battleStyleType === "TRIPLE_BATTLE",
+    s.battleStyleType === "ROTATION_BATTLE",
+  );
+  body.push((modBits | (styleBits << 3)) & 0xff);
+
+  // 63: trainer evolve + ban premature + level-modified flags (NEW in FVX)
+  body.push(bits(
+    s.trainersEvolveTheirPokemon,
+    s.banPrematureEvos,
+    s.trainersLevelModified,
+    s.wildLevelsModified,
+    s.totemLevelsModified,
+    s.staticLevelModified,
+  ));
+
+  // 64: shop items 2 (balanceShopPrices, addCheapRareCandiesToShops — NEW in FVX)
+  body.push(bits(s.balanceShopPrices, s.addCheapRareCandiesToShops));
+
+  // 65: general options #2 (randomizeIntroMon, raceMode, limitPokemon)
+  body.push(bits(s.randomizeIntroMon, s.raceMode, false, s.limitPokemon));
+
+  // 66: makeEvolutionsEasierLvl (slider)
+  body.push(s.makeEvolutionsEasierLvl & 0xff);
+
+  if (body.length !== LENGTH_OF_SETTINGS_DATA) {
+    throw new Error(
+      `Settings payload is ${body.length} bytes, expected ${LENGTH_OF_SETTINGS_DATA}`,
+    );
+  }
 
   // romName (ASCII)
   const romNameBytes = encodeAscii(s.romName ?? "");
@@ -391,36 +523,46 @@ export function encodeSettings(s: UPRSettings): Uint8Array {
   body.push(...romNameBytes);
 
   // CRC32 over body so far
-  const bodyArray = new Uint8Array(body);
-  const checksum = crc32(bodyArray);
+  const checksum = crc32(new Uint8Array(body));
   putInt32BE(body, checksum);
 
   // Custom names file checksum: 0 (no custom names)
   putInt32BE(body, 0);
 
-  // Step 2: base64-encode the binary payload
   const finalBinary = new Uint8Array(body);
   const base64 = btoa(String.fromCharCode(...finalBinary));
-
-  // Step 3: encode as UTF-8 bytes
   const settingsBytes = new TextEncoder().encode(base64);
 
-  // Step 4: wrap in .rnqs header: [VERSION 4B BE] [length 4B BE] [settingsBytes]
+  // .rnqs wrapper: [VERSION 4B BE] [length 4B BE] [settingsBytes]
   const totalLen = 8 + settingsBytes.length;
   const result = new Uint8Array(totalLen);
   const view = new DataView(result.buffer);
-  view.setInt32(0, UPR_VERSION, false); // big-endian
+  view.setInt32(0, UPR_VERSION, false);
   view.setInt32(4, settingsBytes.length, false);
   result.set(settingsBytes, 8);
 
   return result;
 }
 
+function typeToByte(type: PokemonType | null): number {
+  if (type === null || type === undefined) return 0;
+  return (POKEMON_TYPE_INDEX[type] + 1) & 0xff;
+}
+
+function byteToType(byte: number): PokemonType | null {
+  if (byte === 0) return null;
+  const idx = byte - 1;
+  for (const [name, ordinal] of Object.entries(POKEMON_TYPE_INDEX)) {
+    if (ordinal === idx) return name as PokemonType;
+  }
+  return null;
+}
+
 function encodeAscii(str: string): number[] {
   const out: number[] = [];
   for (let i = 0; i < Math.min(str.length, 255); i++) {
     const code = str.charCodeAt(i);
-    out.push(code < 128 ? code : 63); // replace non-ASCII with '?'
+    out.push(code < 128 ? code : 63);
   }
   return out;
 }
@@ -431,20 +573,34 @@ function restoreState(b: number, index: number): boolean {
   return ((b >>> index) & 1) === 1;
 }
 
+function readInt32LE(d: Uint8Array, o: number): number {
+  return (d[o] | (d[o + 1] << 8) | (d[o + 2] << 16) | (d[o + 3] << 24)) | 0;
+}
+
+function signedInt8Restore(byte: number): number {
+  // byte was written as ((modifier - 28) & 0xff). Treat byte as signed int8,
+  // then add 28 to recover the modifier.
+  const signed = byte > 127 ? byte - 256 : byte;
+  return signed + 28;
+}
+
 export function decodeSettingsString(base64: string): Partial<UPRSettings> {
   const binary = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
   const d = binary;
 
-  // verify checksum
-  const storedCrc = new DataView(d.buffer).getInt32(d.length - 8, false);
+  // verify checksum (last 8 bytes are: settings CRC32 + custom names CRC32)
+  const dv = new DataView(d.buffer, d.byteOffset, d.byteLength);
+  const storedCrc = dv.getInt32(d.length - 8, false);
   const computed = crc32(d.slice(0, d.length - 8));
   if (storedCrc !== computed) {
-    throw new Error("Settings string checksum mismatch — string may be corrupted or from a different version");
+    throw new Error(
+      "Settings string checksum mismatch — string may be corrupted or not a UPR-FVX 1.5.1 settings string",
+    );
   }
 
   const s: Partial<UPRSettings> = {};
 
-  // [0]
+  // 0
   s.changeImpossibleEvolutions = restoreState(d[0], 0);
   s.updateMoves = restoreState(d[0], 1);
   s.updateMovesLegacy = restoreState(d[0], 2);
@@ -452,8 +608,9 @@ export function decodeSettingsString(base64: string): Partial<UPRSettings> {
   s.randomizeTrainerClassNames = restoreState(d[0], 4);
   s.makeEvolutionsEasier = restoreState(d[0], 5);
   s.removeTimeBasedEvolutions = restoreState(d[0], 6);
+  s.estimateLevelForEvolutionImprovements = restoreState(d[0], 7);
 
-  // [1]
+  // 1
   s.baseStatsFollowEvolutions = restoreState(d[1], 0);
   s.baseStatisticsMod = restoreState(d[1], 3) ? "UNCHANGED" : restoreState(d[1], 2) ? "SHUFFLE" : "RANDOM";
   s.standardizeEXPCurves = restoreState(d[1], 4);
@@ -461,15 +618,14 @@ export function decodeSettingsString(base64: string): Partial<UPRSettings> {
   s.baseStatsFollowMegaEvolutions = restoreState(d[1], 6);
   s.assignEvoStatsRandomly = restoreState(d[1], 7);
 
-  // [2]
-  s.typesMod = restoreState(d[2], 2) ? "UNCHANGED" : restoreState(d[2], 0) ? "RANDOM_FOLLOW_EVOLUTIONS" : "COMPLETELY_RANDOM";
-  s.raceMode = restoreState(d[2], 3);
-  s.blockBrokenMoves = restoreState(d[2], 4);
-  s.limitPokemon = restoreState(d[2], 5);
+  // 2 (species types only; race/blockBroken/limit moved to byte 65)
+  s.speciesTypesMod = restoreState(d[2], 2) ? "UNCHANGED"
+    : restoreState(d[2], 0) ? "RANDOM_FOLLOW_EVOLUTIONS"
+    : "COMPLETELY_RANDOM";
   s.typesFollowMegaEvolutions = restoreState(d[2], 6);
   s.dualTypeOnly = restoreState(d[2], 7);
 
-  // [3]
+  // 3
   s.abilitiesMod = restoreState(d[3], 1) ? "RANDOMIZE" : "UNCHANGED";
   s.allowWonderGuard = restoreState(d[3], 2);
   s.abilitiesFollowEvolutions = restoreState(d[3], 3);
@@ -478,22 +634,24 @@ export function decodeSettingsString(base64: string): Partial<UPRSettings> {
   s.banBadAbilities = restoreState(d[3], 6);
   s.abilitiesFollowMegaEvolutions = restoreState(d[3], 7);
 
-  // [4]
+  // 4
   s.startersMod = restoreState(d[4], 2) ? "UNCHANGED"
     : restoreState(d[4], 0) ? "CUSTOM"
     : restoreState(d[4], 3) ? "RANDOM_WITH_TWO_EVOLUTIONS"
+    : restoreState(d[4], 7) ? "RANDOM_BASIC"
     : "COMPLETELY_RANDOM";
   s.randomizeStartersHeldItems = restoreState(d[4], 4);
   s.banBadRandomStarterHeldItems = restoreState(d[4], 5);
   s.allowStarterAltFormes = restoreState(d[4], 6);
 
-  // [5-10] custom starters
-  const s0 = (d[5] | (d[6] << 8)) + 1;
-  const s1 = (d[7] | (d[8] << 8)) + 1;
-  const s2 = (d[9] | (d[10] << 8)) + 1;
-  s.customStarters = [s0, s1, s2];
+  // 5-10 custom starters (LE, no -1 in FVX)
+  s.customStarters = [
+    d[5] | (d[6] << 8),
+    d[7] | (d[8] << 8),
+    d[9] | (d[10] << 8),
+  ];
 
-  // [11-12]
+  // 11-12
   s.movesetsMod = restoreState(d[11], 2) ? "UNCHANGED"
     : restoreState(d[11], 0) ? "COMPLETELY_RANDOM"
     : restoreState(d[11], 3) ? "METRONOME_ONLY"
@@ -504,200 +662,289 @@ export function decodeSettingsString(base64: string): Partial<UPRSettings> {
   s.movesetsForceGoodDamaging = restoreState(d[12], 7);
   s.movesetsGoodDamagingPercent = d[12] & 0x7f;
 
-  // [13-14]
+  // 13
   s.trainersMod = restoreState(d[13], 0) ? "UNCHANGED"
     : restoreState(d[13], 1) ? "RANDOM"
     : restoreState(d[13], 2) ? "DISTRIBUTED"
     : restoreState(d[13], 3) ? "MAINPLAYTHROUGH"
     : restoreState(d[13], 4) ? "TYPE_THEMED"
-    : "TYPE_THEMED_ELITE4_GYMS";
-  s.trainersForceFullyEvolved = restoreState(d[14], 7);
-  s.trainersForceFullyEvolvedLevel = d[14] & 0x7f;
+    : restoreState(d[13], 5) ? "TYPE_THEMED_ELITE4_GYMS"
+    : restoreState(d[13], 6) ? "KEEP_THEMED"
+    : "KEEP_THEME_OR_PRIMARY";
 
-  // [15-16]
-  s.wildPokemonMod = restoreState(d[15], 6) ? "UNCHANGED"
-    : restoreState(d[15], 5) ? "RANDOM"
-    : restoreState(d[15], 1) ? "AREA_MAPPING"
-    : "GLOBAL_MAPPING";
-  s.wildPokemonRestrictionMod = restoreState(d[15], 2) ? "NONE"
-    : restoreState(d[15], 0) ? "CATCH_EM_ALL"
-    : restoreState(d[15], 3) ? "TYPE_THEME_AREAS"
-    : restoreState(d[16], 2) ? "SIMILAR_STRENGTH"
+  // 14
+  s.trainersEvolutionLevelModifier = signedInt8Restore(d[14]);
+
+  // 15
+  s.randomizeWildPokemon = !restoreState(d[15], 0);
+  s.wildPokemonZoneMod = restoreState(d[15], 1) ? "NONE"
+    : restoreState(d[15], 2) ? "ENCOUNTER_SET"
+    : restoreState(d[15], 3) ? "GAME"
+    : restoreState(d[15], 5) ? "NAMED_LOCATION"
+    : restoreState(d[15], 6) ? "MAP"
+    : "GAME";
+  s.keepWildEvolutionFamilies = restoreState(d[15], 4);
+  s.splitWildZoneByEncounterTypes = restoreState(d[15], 7);
+
+  // 16
+  s.similarStrengthEncounters = restoreState(d[16], 1);
+  s.catchEmAllEncounters = restoreState(d[16], 2);
+
+  // 17
+  s.wildPokemonTypeMod = restoreState(d[17], 0) ? "NONE"
+    : restoreState(d[17], 1) ? "KEEP_PRIMARY"
+    : restoreState(d[17], 2) ? "RANDOM_THEMES"
     : "NONE";
-  s.useTimeBasedEncounters = restoreState(d[15], 7);
-  s.useMinimumCatchRate = restoreState(d[16], 0);
-  s.blockWildLegendaries = restoreState(d[16], 1);
-  s.randomizeWildPokemonHeldItems = restoreState(d[16], 3);
-  s.banBadRandomWildPokemonHeldItems = restoreState(d[16], 4);
-  s.balanceShakingGrass = restoreState(d[16], 7);
+  s.keepWildTypeThemes = restoreState(d[17], 3);
+  s.wildPokemonEvolutionMod = restoreState(d[17], 4) ? "NONE"
+    : restoreState(d[17], 5) ? "BASIC_ONLY"
+    : restoreState(d[17], 6) ? "KEEP_STAGE"
+    : "NONE";
 
-  // [17]
-  s.staticPokemonMod = restoreState(d[17], 0) ? "UNCHANGED"
-    : restoreState(d[17], 1) ? "RANDOM_MATCHING"
-    : restoreState(d[17], 2) ? "COMPLETELY_RANDOM"
+  // 18
+  s.useTimeBasedEncounters = restoreState(d[18], 0);
+  s.useMinimumCatchRate = restoreState(d[18], 1);
+  s.blockWildLegendaries = restoreState(d[18], 2);
+  s.randomizeWildPokemonHeldItems = restoreState(d[18], 3);
+  s.banBadRandomWildPokemonHeldItems = restoreState(d[18], 4);
+  s.balanceShakingGrass = restoreState(d[18], 5);
+
+  // 19
+  s.staticPokemonMod = restoreState(d[19], 0) ? "UNCHANGED"
+    : restoreState(d[19], 1) ? "RANDOM_MATCHING"
+    : restoreState(d[19], 2) ? "COMPLETELY_RANDOM"
     : "SIMILAR_STRENGTH";
-  s.limitMainGameLegendaries = restoreState(d[17], 4);
-  s.limit600 = restoreState(d[17], 5);
-  s.allowStaticAltFormes = restoreState(d[17], 6);
-  s.swapStaticMegaEvos = restoreState(d[17], 7);
+  s.limitMainGameLegendaries = restoreState(d[19], 4);
+  s.limit600 = restoreState(d[19], 5);
+  s.allowStaticAltFormes = restoreState(d[19], 6);
+  s.swapStaticMegaEvos = restoreState(d[19], 7);
 
-  // [18-20]
-  s.tmsHmsCompatibilityMod = restoreState(d[18], 2) ? "UNCHANGED"
-    : restoreState(d[18], 0) ? "COMPLETELY_RANDOM"
-    : restoreState(d[18], 7) ? "FULL"
+  // 20-22
+  s.tmsHmsCompatibilityMod = restoreState(d[20], 2) ? "UNCHANGED"
+    : restoreState(d[20], 0) ? "COMPLETELY_RANDOM"
+    : restoreState(d[20], 7) ? "FULL"
     : "RANDOM_PREFER_TYPE";
-  s.tmsMod = restoreState(d[18], 4) ? "UNCHANGED" : "RANDOM";
-  s.tmLevelUpMoveSanity = restoreState(d[18], 5);
-  s.keepFieldMoveTMs = restoreState(d[18], 6);
-  s.fullHMCompat = restoreState(d[19], 0);
-  s.tmsFollowEvolutions = restoreState(d[19], 1);
-  s.tutorFollowEvolutions = restoreState(d[19], 2);
-  s.tmsForceGoodDamaging = restoreState(d[20], 7);
-  s.tmsGoodDamagingPercent = d[20] & 0x7f;
+  s.tmsMod = restoreState(d[20], 4) ? "UNCHANGED" : "RANDOM";
+  s.tmLevelUpMoveSanity = restoreState(d[20], 5);
+  s.keepFieldMoveTMs = restoreState(d[20], 6);
+  s.fullHMCompat = restoreState(d[21], 0);
+  s.tmsFollowEvolutions = restoreState(d[21], 1);
+  s.tutorFollowEvolutions = restoreState(d[21], 2);
+  s.tmsForceGoodDamaging = restoreState(d[22], 7);
+  s.tmsGoodDamagingPercent = d[22] & 0x7f;
 
-  // [21-22]
-  s.moveTutorsCompatibilityMod = restoreState(d[21], 2) ? "UNCHANGED"
-    : restoreState(d[21], 0) ? "COMPLETELY_RANDOM"
-    : restoreState(d[21], 7) ? "FULL"
+  // 23-24
+  s.moveTutorsCompatibilityMod = restoreState(d[23], 2) ? "UNCHANGED"
+    : restoreState(d[23], 0) ? "COMPLETELY_RANDOM"
+    : restoreState(d[23], 7) ? "FULL"
     : "RANDOM_PREFER_TYPE";
-  s.moveTutorMovesMod = restoreState(d[21], 4) ? "UNCHANGED" : "RANDOM";
-  s.tutorLevelUpMoveSanity = restoreState(d[21], 5);
-  s.keepFieldMoveTutors = restoreState(d[21], 6);
-  s.tutorsForceGoodDamaging = restoreState(d[22], 7);
-  s.tutorsGoodDamagingPercent = d[22] & 0x7f;
+  s.moveTutorMovesMod = restoreState(d[23], 4) ? "UNCHANGED" : "RANDOM";
+  s.tutorLevelUpMoveSanity = restoreState(d[23], 5);
+  s.keepFieldMoveTutors = restoreState(d[23], 6);
+  s.tutorsForceGoodDamaging = restoreState(d[24], 7);
+  s.tutorsGoodDamagingPercent = d[24] & 0x7f;
 
-  // [23]
-  s.inGameTradesMod = restoreState(d[23], 6) ? "UNCHANGED"
-    : restoreState(d[23], 0) ? "RANDOMIZE_GIVEN_AND_REQUESTED"
+  // 25
+  s.inGameTradesMod = restoreState(d[25], 6) ? "UNCHANGED"
+    : restoreState(d[25], 0) ? "RANDOMIZE_GIVEN_AND_REQUESTED"
     : "RANDOMIZE_GIVEN";
-  s.randomizeInGameTradesItems = restoreState(d[23], 2);
-  s.randomizeInGameTradesIVs = restoreState(d[23], 3);
-  s.randomizeInGameTradesNicknames = restoreState(d[23], 4);
-  s.randomizeInGameTradesOTs = restoreState(d[23], 5);
+  s.randomizeInGameTradesItems = restoreState(d[25], 2);
+  s.randomizeInGameTradesIVs = restoreState(d[25], 3);
+  s.randomizeInGameTradesNicknames = restoreState(d[25], 4);
+  s.randomizeInGameTradesOTs = restoreState(d[25], 5);
 
-  // [24]
-  s.fieldItemsMod = restoreState(d[24], 2) ? "UNCHANGED"
-    : restoreState(d[24], 0) ? "RANDOM"
-    : restoreState(d[24], 4) ? "RANDOM_EVEN"
+  // 26
+  s.fieldItemsMod = restoreState(d[26], 2) ? "UNCHANGED"
+    : restoreState(d[26], 0) ? "RANDOM"
+    : restoreState(d[26], 4) ? "RANDOM_EVEN"
     : "SHUFFLE";
-  s.banBadRandomFieldItems = restoreState(d[24], 3);
+  s.banBadRandomFieldItems = restoreState(d[26], 3);
 
-  // [25]
-  s.randomizeMovePowers = restoreState(d[25], 0);
-  s.randomizeMoveAccuracies = restoreState(d[25], 1);
-  s.randomizeMovePPs = restoreState(d[25], 2);
-  s.randomizeMoveTypes = restoreState(d[25], 3);
-  s.randomizeMoveCategory = restoreState(d[25], 4);
-  s.correctStaticMusic = restoreState(d[25], 5);
+  // 27
+  s.randomizeMovePowers = restoreState(d[27], 0);
+  s.randomizeMoveAccuracies = restoreState(d[27], 1);
+  s.randomizeMovePPs = restoreState(d[27], 2);
+  s.randomizeMoveTypes = restoreState(d[27], 3);
+  s.randomizeMoveCategory = restoreState(d[27], 4);
+  s.correctStaticMusic = restoreState(d[27], 5);
+  s.randomizeMoveNames = restoreState(d[27], 6);
 
-  // [26]
-  s.evolutionsMod = restoreState(d[26], 0) ? "UNCHANGED"
-    : restoreState(d[26], 7) ? "RANDOM_EVERY_LEVEL"
+  // 28
+  s.evolutionsMod = restoreState(d[28], 0) ? "UNCHANGED"
+    : restoreState(d[28], 7) ? "RANDOM_EVERY_LEVEL"
     : "RANDOM";
-  s.evosSimilarStrength = restoreState(d[26], 2);
-  s.evosSameTyping = restoreState(d[26], 3);
-  s.evosMaxThreeStages = restoreState(d[26], 4);
-  s.evosForceChange = restoreState(d[26], 5);
-  s.evosAllowAltFormes = restoreState(d[26], 6);
+  s.evosSimilarStrength = restoreState(d[28], 2);
+  s.evosSameTyping = restoreState(d[28], 3);
+  s.evosMaxThreeStages = restoreState(d[28], 4);
+  s.evosForceChange = restoreState(d[28], 5);
+  s.evosAllowAltFormes = restoreState(d[28], 6);
 
-  // [27]
-  s.trainersUsePokemonOfSimilarStrength = restoreState(d[27], 0);
-  s.rivalCarriesStarterThroughout = restoreState(d[27], 1);
-  s.trainersMatchTypingDistribution = restoreState(d[27], 2);
-  s.trainersBlockLegendaries = restoreState(d[27], 3);
-  s.trainersBlockEarlyWonderGuard = restoreState(d[27], 4);
-  s.swapTrainerMegaEvos = restoreState(d[27], 5);
-  s.shinyChance = restoreState(d[27], 6);
-  s.betterTrainerMovesets = restoreState(d[27], 7);
+  // 29
+  s.trainersUsePokemonOfSimilarStrength = restoreState(d[29], 0);
+  s.rivalCarriesStarterThroughout = restoreState(d[29], 1);
+  s.trainersMatchTypingDistribution = restoreState(d[29], 2);
+  s.trainersBlockLegendaries = restoreState(d[29], 3);
+  s.trainersBlockEarlyWonderGuard = restoreState(d[29], 4);
+  s.swapTrainerMegaEvos = restoreState(d[29], 5);
+  s.shinyChance = restoreState(d[29], 6);
+  s.trainersAvoidDuplicates = restoreState(d[29], 7);
 
-  // [28-35]
-  const dv = new DataView(d.buffer, d.byteOffset);
-  s.currentRestrictions = dv.getInt32(28, false);
-  s.currentMiscTweaks = dv.getInt32(32, false);
+  // 30-37
+  s.currentRestrictions = readInt32LE(d, 30);
+  s.currentMiscTweaks = dv.getInt32(34, false);
 
-  // [36]
-  s.trainersLevelModified = restoreState(d[36], 7);
-  s.trainersLevelModifier = (d[36] & 0x7f) - 50;
+  // 38
+  s.trainersLevelModifier = signedInt8Restore(d[38]);
 
-  // [37]
-  s.shopItemsMod = restoreState(d[37], 2) ? "UNCHANGED" : restoreState(d[37], 0) ? "RANDOM" : "SHUFFLE";
-  s.banBadRandomShopItems = restoreState(d[37], 3);
-  s.banRegularShopItems = restoreState(d[37], 4);
-  s.banOPShopItems = restoreState(d[37], 5);
-  s.balanceShopPrices = restoreState(d[37], 6);
-  s.guaranteeEvolutionItems = restoreState(d[37], 7);
+  // 39
+  s.shopItemsMod = restoreState(d[39], 2) ? "UNCHANGED" : restoreState(d[39], 0) ? "RANDOM" : "SHUFFLE";
+  s.banBadRandomShopItems = restoreState(d[39], 3);
+  s.banRegularShopItems = restoreState(d[39], 4);
+  s.banOPShopItems = restoreState(d[39], 5);
+  s.guaranteeEvolutionItems = restoreState(d[39], 7);
 
-  // [38]
-  s.wildLevelsModified = restoreState(d[38], 7);
-  s.wildLevelModifier = (d[38] & 0x7f) - 50;
+  // 40
+  s.wildLevelModifier = signedInt8Restore(d[40]);
 
-  // [39]
-  s.expCurveMod = restoreState(d[39], 0) ? "LEGENDARIES"
-    : restoreState(d[39], 1) ? "STRONG_LEGENDARIES"
+  // 41
+  s.expCurveMod = restoreState(d[41], 0) ? "LEGENDARIES"
+    : restoreState(d[41], 1) ? "STRONG_LEGENDARIES"
     : "ALL";
-  s.blockBrokenMovesetMoves = restoreState(d[39], 3);
-  s.blockBrokenTMMoves = restoreState(d[39], 4);
-  s.blockBrokenTutorMoves = restoreState(d[39], 5);
-  s.allowTrainerAlternateFormes = restoreState(d[39], 6);
-  s.allowWildAltFormes = restoreState(d[39], 7);
+  s.blockBrokenMovesetMoves = restoreState(d[41], 3);
+  s.blockBrokenTMMoves = restoreState(d[41], 4);
+  s.blockBrokenTutorMoves = restoreState(d[41], 5);
+  s.allowTrainerAlternateFormes = restoreState(d[41], 6);
+  s.allowWildAltFormes = restoreState(d[41], 7);
 
-  // [40]
-  s.doubleBattleMode = restoreState(d[40], 0);
-  s.additionalBossTrainerPokemon = (d[40] >> 1) & 0x7;
-  s.additionalImportantTrainerPokemon = (d[40] >> 4) & 0x7;
-  s.weighDuplicateAbilitiesTogether = restoreState(d[40], 7);
+  // 42 (legacy bit 0 ignored)
+  s.additionalBossTrainerPokemon = (d[42] >> 1) & 0x7;
+  s.additionalImportantTrainerPokemon = (d[42] >> 4) & 0x7;
+  s.weighDuplicateAbilitiesTogether = restoreState(d[42], 7);
 
-  // [41]
-  s.additionalRegularTrainerPokemon = d[41] & 0x7;
-  s.auraMod = restoreState(d[41], 3) ? "UNCHANGED" : restoreState(d[41], 4) ? "RANDOM" : "SAME_STRENGTH";
-  s.evolutionMovesForAll = restoreState(d[41], 6);
-  s.guaranteeXItems = restoreState(d[41], 7);
+  // 43
+  s.additionalRegularTrainerPokemon = d[43] & 0x7;
+  s.auraMod = restoreState(d[43], 3) ? "UNCHANGED" : restoreState(d[43], 4) ? "RANDOM" : "SAME_STRENGTH";
+  s.evolutionMovesForAll = restoreState(d[43], 6);
+  s.guaranteeXItems = restoreState(d[43], 7);
 
-  // [42]
-  s.totemPokemonMod = restoreState(d[42], 0) ? "UNCHANGED" : restoreState(d[42], 1) ? "RANDOM" : "SIMILAR_STRENGTH";
-  s.allyPokemonMod = restoreState(d[42], 3) ? "UNCHANGED" : restoreState(d[42], 4) ? "RANDOM" : "SIMILAR_STRENGTH";
-  s.randomizeTotemHeldItems = restoreState(d[42], 6);
-  s.allowTotemAltFormes = restoreState(d[42], 7);
+  // 44
+  s.totemPokemonMod = restoreState(d[44], 0) ? "UNCHANGED" : restoreState(d[44], 1) ? "RANDOM" : "SIMILAR_STRENGTH";
+  s.allyPokemonMod = restoreState(d[44], 3) ? "UNCHANGED" : restoreState(d[44], 4) ? "RANDOM" : "SIMILAR_STRENGTH";
+  s.randomizeTotemHeldItems = restoreState(d[44], 6);
+  s.allowTotemAltFormes = restoreState(d[44], 7);
 
-  // [43]
-  s.totemLevelsModified = restoreState(d[43], 7);
-  s.totemLevelModifier = (d[43] & 0x7f) - 50;
-
-  // [44-46]
-  s.updateBaseStatsToGeneration = d[44];
-  s.updateMovesToGeneration = d[45];
-  const expCurveByte = d[46];
+  // 45-49
+  s.totemLevelModifier = signedInt8Restore(d[45]);
+  s.updateBaseStatsToGeneration = d[46];
+  s.updateMovesToGeneration = d[47];
+  const expCurveByte = d[48];
   s.selectedEXPCurve = expCurveByte === 1 ? "ERRATIC"
     : expCurveByte === 2 ? "FLUCTUATING"
     : expCurveByte === 3 ? "MEDIUM_SLOW"
     : expCurveByte === 4 ? "FAST"
     : expCurveByte === 5 ? "SLOW"
     : "MEDIUM_FAST";
+  s.staticLevelModifier = signedInt8Restore(d[49]);
 
-  // [47]
-  s.staticLevelModified = restoreState(d[47], 7);
-  s.staticLevelModifier = (d[47] & 0x7f) - 50;
+  // 50
+  s.randomizeHeldItemsForBossTrainerPokemon = restoreState(d[50], 0);
+  s.randomizeHeldItemsForImportantTrainerPokemon = restoreState(d[50], 1);
+  s.randomizeHeldItemsForRegularTrainerPokemon = restoreState(d[50], 2);
+  s.consumableItemsOnlyForTrainerPokemon = restoreState(d[50], 3);
+  s.sensibleItemsOnlyForTrainerPokemon = restoreState(d[50], 4);
+  s.highestLevelOnlyGetsItemsForTrainerPokemon = restoreState(d[50], 5);
+  s.ensureTwoAbilities = restoreState(d[50], 6);
+  s.trainersUseLocalPokemon = restoreState(d[50], 7);
 
-  // [48]
-  s.randomizeHeldItemsForBossTrainerPokemon = restoreState(d[48], 0);
-  s.randomizeHeldItemsForImportantTrainerPokemon = restoreState(d[48], 1);
-  s.randomizeHeldItemsForRegularTrainerPokemon = restoreState(d[48], 2);
-  s.consumableItemsOnlyForTrainerPokemon = restoreState(d[48], 3);
-  s.sensibleItemsOnlyForTrainerPokemon = restoreState(d[48], 4);
-  s.highestLevelOnlyGetsItemsForTrainerPokemon = restoreState(d[48], 5);
-  s.ensureTwoAbilities = restoreState(d[48], 6);
+  // 51
+  s.pickupItemsMod = restoreState(d[51], 1) ? "UNCHANGED" : "RANDOM";
+  s.banBadRandomPickupItems = restoreState(d[51], 2);
+  s.banIrregularAltFormes = restoreState(d[51], 3);
 
-  // [49]
-  s.pickupItemsMod = restoreState(d[49], 1) ? "UNCHANGED" : "RANDOM";
-  s.banBadRandomPickupItems = restoreState(d[49], 2);
-  s.banIrregularAltFormes = restoreState(d[49], 3);
+  // 52
+  s.eliteFourUniquePokemonNumber = d[52] & 0x7;
+  s.minimumCatchRateLevel = ((d[52] >> 3) & 0x7) + 1;
 
-  // [50]
-  s.eliteFourUniquePokemonNumber = d[50] & 0x7;
-  s.minimumCatchRateLevel = ((d[50] >> 3) & 0x7) + 1;
+  // 53-54
+  s.startersTypeMod = restoreState(d[53], 0) ? "NONE"
+    : restoreState(d[53], 1) ? "FIRE_WATER_GRASS"
+    : restoreState(d[53], 2) ? "TRIANGLE"
+    : restoreState(d[53], 3) ? "UNIQUE"
+    : restoreState(d[53], 4) ? "SINGLE_TYPE"
+    : "NONE";
+  s.startersNoLegendaries = restoreState(d[53], 6);
+  s.startersNoDualTypes = restoreState(d[53], 7);
+  s.startersSingleType = byteToType(d[54]);
+
+  // 55
+  s.pokemonPalettesMod = restoreState(d[55], 0) ? "UNCHANGED"
+    : restoreState(d[55], 1) ? "RANDOM"
+    : "UNCHANGED";
+  s.pokemonPalettesFollowTypes = restoreState(d[55], 2);
+  s.pokemonPalettesFollowEvolutions = restoreState(d[55], 3);
+  s.pokemonPalettesShinyFromNormal = restoreState(d[55], 4);
+
+  // 56
+  s.typeEffectivenessMod = restoreState(d[56], 0) ? "UNCHANGED"
+    : restoreState(d[56], 1) ? "RANDOM"
+    : restoreState(d[56], 2) ? "RANDOM_BALANCED"
+    : restoreState(d[56], 3) ? "KEEP_IDENTITIES"
+    : restoreState(d[56], 4) ? "INVERSE"
+    : "UNCHANGED";
+  s.inverseTypesRandomImmunities = restoreState(d[56], 5);
+  s.updateTypeEffectiveness = restoreState(d[56], 6);
+
+  // 57
+  s.evosForceGrowth = restoreState(d[57], 0);
+  s.evosNoConvergence = restoreState(d[57], 1);
+
+  // 58-60: starter BST limits (12-bit packed)
+  // highEndByte = ((min >> 8) & 0x0F) | ((max >> 4) & 0xF0)
+  s.startersBSTMinimum = ((d[58] & 0x0f) << 8) | d[59];
+  s.startersBSTMaximum = ((d[58] & 0xf0) << 4) | d[60];
+
+  // 61
+  s.diverseTypesForBossTrainers = restoreState(d[61], 0);
+  s.diverseTypesForImportantTrainers = restoreState(d[61], 1);
+  s.diverseTypesForRegularTrainers = restoreState(d[61], 2);
+  s.betterBossTrainerMovesets = restoreState(d[61], 3);
+  s.betterImportantTrainerMovesets = restoreState(d[61], 4);
+  s.betterRegularTrainerMovesets = restoreState(d[61], 5);
+
+  // 62
+  s.battleStyleModification = restoreState(d[62], 0) ? "UNCHANGED"
+    : restoreState(d[62], 1) ? "RANDOM"
+    : restoreState(d[62], 2) ? "SINGLE_STYLE"
+    : "UNCHANGED";
+  const styleNib = (d[62] >> 3) & 0xf;
+  s.battleStyleType = (styleNib & 1) ? "SINGLE_BATTLE"
+    : (styleNib & 2) ? "DOUBLE_BATTLE"
+    : (styleNib & 4) ? "TRIPLE_BATTLE"
+    : (styleNib & 8) ? "ROTATION_BATTLE"
+    : "SINGLE_BATTLE";
+
+  // 63
+  s.trainersEvolveTheirPokemon = restoreState(d[63], 0);
+  s.banPrematureEvos = restoreState(d[63], 1);
+  s.trainersLevelModified = restoreState(d[63], 2);
+  s.wildLevelsModified = restoreState(d[63], 3);
+  s.totemLevelsModified = restoreState(d[63], 4);
+  s.staticLevelModified = restoreState(d[63], 5);
+
+  // 64
+  s.balanceShopPrices = restoreState(d[64], 0);
+  s.addCheapRareCandiesToShops = restoreState(d[64], 1);
+
+  // 65
+  s.randomizeIntroMon = restoreState(d[65], 0);
+  s.raceMode = restoreState(d[65], 1);
+  s.limitPokemon = restoreState(d[65], 3);
+
+  // 66
+  s.makeEvolutionsEasierLvl = d[66];
 
   // romName
-  let offset = 51;
+  let offset = 67;
   const nameLen = d[offset++];
   const nameBytes = d.slice(offset, offset + nameLen);
   s.romName = new TextDecoder("ascii").decode(nameBytes);
@@ -706,7 +953,7 @@ export function decodeSettingsString(base64: string): Partial<UPRSettings> {
 }
 
 /**
- * Parses a .rnqs file buffer and returns the embedded settings string (base64)
+ * Parses a .rnqs file buffer and returns the embedded settings string (base64).
  */
 export function parseRnqsFile(buffer: ArrayBuffer): string {
   const view = new DataView(buffer);
@@ -717,7 +964,7 @@ export function parseRnqsFile(buffer: ArrayBuffer): string {
 }
 
 /**
- * Encodes settings to a base64 settings string (for display / import-export)
+ * Encodes settings to a base64 settings string (for display / import-export).
  */
 export function settingsToString(s: UPRSettings): string {
   const rnqs = encodeSettings(s);

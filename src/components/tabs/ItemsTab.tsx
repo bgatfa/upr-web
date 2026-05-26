@@ -82,6 +82,11 @@ export function ItemsTab({ s, set, rom }: Props) {
                   onChange={e => set("guaranteeXItems", e.target.checked)} />
                 Guarantee X Items<Tooltip text={tooltips.guaranteeXItems} />
               </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.addCheapRareCandiesToShops}
+                  onChange={e => set("addCheapRareCandiesToShops", e.target.checked)} />
+                Add Cheap Rare Candies<Tooltip text={tooltips.addCheapRareCandiesToShops} />
+              </span>
             </div>
           </div>
         )}

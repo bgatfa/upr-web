@@ -1,4 +1,7 @@
-import type { UPRSettings, WildPokemonMod, WildPokemonRestrictionMod, StaticPokemonMod } from "@/types/settings";
+import type {
+  UPRSettings, StaticPokemonMod,
+  WildPokemonZoneMod, WildPokemonTypeMod, WildPokemonEvolutionMod,
+} from "@/types/settings";
 import type { RomProfile } from "@/lib/romDetection";
 import { Tooltip } from "@/components/Tooltip";
 import { tooltips } from "@/lib/tooltips";
@@ -9,18 +12,24 @@ interface Props {
   rom: RomProfile | null;
 }
 
-const WILD_MODS: { value: WildPokemonMod; label: string }[] = [
-  { value: "UNCHANGED",     label: "Unchanged" },
-  { value: "RANDOM",        label: "Random" },
-  { value: "AREA_MAPPING",  label: "Area Mapping" },
-  { value: "GLOBAL_MAPPING",label: "Global Mapping" },
+const ZONE_MODS: { value: WildPokemonZoneMod; label: string }[] = [
+  { value: "NONE",            label: "Per Encounter" },
+  { value: "ENCOUNTER_SET",   label: "Encounter Set" },
+  { value: "MAP",             label: "Per Map" },
+  { value: "NAMED_LOCATION",  label: "Named Location" },
+  { value: "GAME",            label: "Whole Game" },
 ];
 
-const RESTRICTION_MODS: { value: WildPokemonRestrictionMod; label: string }[] = [
-  { value: "NONE",            label: "None" },
-  { value: "CATCH_EM_ALL",    label: "Catch 'Em All" },
-  { value: "TYPE_THEME_AREAS",label: "Type Theme Areas" },
-  { value: "SIMILAR_STRENGTH",label: "Similar Strength" },
+const TYPE_MODS: { value: WildPokemonTypeMod; label: string }[] = [
+  { value: "NONE",          label: "No Constraint" },
+  { value: "KEEP_PRIMARY",  label: "Keep Primary Type" },
+  { value: "RANDOM_THEMES", label: "Random Themes" },
+];
+
+const EVO_MODS: { value: WildPokemonEvolutionMod; label: string }[] = [
+  { value: "NONE",       label: "No Constraint" },
+  { value: "BASIC_ONLY", label: "Basic Only" },
+  { value: "KEEP_STAGE", label: "Keep Stage" },
 ];
 
 const STATIC_MODS: { value: StaticPokemonMod; label: string }[] = [
@@ -31,7 +40,6 @@ const STATIC_MODS: { value: StaticPokemonMod; label: string }[] = [
 ];
 
 export function WildPokemonTab({ s, set, rom }: Props) {
-  const randomizing = s.wildPokemonMod !== "UNCHANGED";
   const hasTimeBasedEncounters = rom?.hasTimeBasedEncounters ?? true;
   const hasWildAltFormes = rom?.hasWildAltFormes ?? true;
   const canChangeStaticPokemon = rom?.canChangeStaticPokemon ?? true;
@@ -44,34 +52,98 @@ export function WildPokemonTab({ s, set, rom }: Props) {
     <div className="flex flex-col gap-0">
 
       <div className="panel">
-        <span className="panel-title">Wild Pokemon<Tooltip text={tooltips.wildPokemonMod} /></span>
-        <div className="field-row mb-1">
-          {WILD_MODS.map(({ value, label }) => (
-            <span key={value} className="radio-label">
-              <input type="radio" name="wildMod" checked={s.wildPokemonMod === value}
-                onChange={() => set("wildPokemonMod", value)} />
-              {label}
-            </span>
-          ))}
-        </div>
+        <span className="panel-title">Wild Pokemon<Tooltip text={tooltips.randomizeWildPokemon} /></span>
+        <span className="checkbox-label">
+          <input type="checkbox" checked={s.randomizeWildPokemon}
+            onChange={e => set("randomizeWildPokemon", e.target.checked)} />
+          Randomize Wild Pokemon
+        </span>
 
-        {randomizing && (
+        {s.randomizeWildPokemon && (
           <div className="sub-options">
-            {/* Restriction — nested radio group */}
+            {/* Zone granularity */}
             <div>
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Restriction<Tooltip text={tooltips.wildPokemonRestrictionMod} /></span>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Zone<Tooltip text={tooltips.wildPokemonZoneMod} />
+              </span>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                {RESTRICTION_MODS.map(({ value, label }) => (
+                {ZONE_MODS.map(({ value, label }) => (
                   <span key={value} className="radio-label">
-                    <input type="radio" name="wildRestrict" checked={s.wildPokemonRestrictionMod === value}
-                      onChange={() => set("wildPokemonRestrictionMod", value)} />
+                    <input type="radio" name="wildZoneMod" checked={s.wildPokemonZoneMod === value}
+                      onChange={() => set("wildPokemonZoneMod", value)} />
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                <span className="checkbox-label">
+                  <input type="checkbox" checked={s.splitWildZoneByEncounterTypes}
+                    onChange={e => set("splitWildZoneByEncounterTypes", e.target.checked)} />
+                  Split by Encounter Type<Tooltip text={tooltips.splitWildZoneByEncounterTypes} />
+                </span>
+                <span className="checkbox-label">
+                  <input type="checkbox" checked={s.keepWildEvolutionFamilies}
+                    onChange={e => set("keepWildEvolutionFamilies", e.target.checked)} />
+                  Keep Evolution Families<Tooltip text={tooltips.keepWildEvolutionFamilies} />
+                </span>
+              </div>
+            </div>
+
+            {/* Type constraint */}
+            <div>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Type<Tooltip text={tooltips.wildPokemonTypeMod} />
+              </span>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                {TYPE_MODS.map(({ value, label }) => (
+                  <span key={value} className="radio-label">
+                    <input type="radio" name="wildTypeMod" checked={s.wildPokemonTypeMod === value}
+                      onChange={() => set("wildPokemonTypeMod", value)} />
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <span className="checkbox-label mt-1">
+                <input type="checkbox" checked={s.keepWildTypeThemes}
+                  onChange={e => set("keepWildTypeThemes", e.target.checked)} />
+                Keep Original Type Themes<Tooltip text={tooltips.keepWildTypeThemes} />
+              </span>
+            </div>
+
+            {/* Evolution stage constraint */}
+            <div>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Evolution<Tooltip text={tooltips.wildPokemonEvolutionMod} />
+              </span>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                {EVO_MODS.map(({ value, label }) => (
+                  <span key={value} className="radio-label">
+                    <input type="radio" name="wildEvoMod" checked={s.wildPokemonEvolutionMod === value}
+                      onChange={() => set("wildPokemonEvolutionMod", value)} />
                     {label}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+            {/* Strength constraint (legacy similar-strength / catch-em-all) */}
+            <div>
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Restriction</span>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                <span className="checkbox-label">
+                  <input type="checkbox" checked={s.similarStrengthEncounters}
+                    onChange={e => set("similarStrengthEncounters", e.target.checked)} />
+                  Similar Strength
+                </span>
+                <span className="checkbox-label">
+                  <input type="checkbox" checked={s.catchEmAllEncounters}
+                    onChange={e => set("catchEmAllEncounters", e.target.checked)} />
+                  Catch 'Em All
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
               <span className="checkbox-label">
                 <input type="checkbox" checked={s.blockWildLegendaries}
                   onChange={e => set("blockWildLegendaries", e.target.checked)} />
@@ -94,7 +166,6 @@ export function WildPokemonTab({ s, set, rom }: Props) {
               </span>
             </div>
 
-            {/* Held items — sub-toggle */}
             <div>
               <span className="checkbox-label">
                 <input type="checkbox" checked={s.randomizeWildPokemonHeldItems}
@@ -112,7 +183,6 @@ export function WildPokemonTab({ s, set, rom }: Props) {
               )}
             </div>
 
-            {/* Catch rate — sub-toggle */}
             <div>
               <span className="checkbox-label">
                 <input type="checkbox" checked={s.useMinimumCatchRate}
@@ -130,7 +200,6 @@ export function WildPokemonTab({ s, set, rom }: Props) {
               )}
             </div>
 
-            {/* Level modifier — sub-toggle */}
             <div>
               <span className="checkbox-label">
                 <input type="checkbox" checked={s.wildLevelsModified}
@@ -139,10 +208,10 @@ export function WildPokemonTab({ s, set, rom }: Props) {
               </span>
               {s.wildLevelsModified && (
                 <div className="sub-row items-center">
-                  <input type="range" min={-50} max={50} className="w-36"
+                  <input type="range" min={-100} max={155} className="w-36"
                     value={s.wildLevelModifier}
                     onChange={e => set("wildLevelModifier", Number(e.target.value))} />
-                  <span className="text-sm text-gray-700 w-12 font-mono">
+                  <span className="text-sm text-gray-700 w-14 font-mono">
                     {s.wildLevelModifier >= 0 ? `+${s.wildLevelModifier}` : s.wildLevelModifier}%
                   </span>
                 </div>
@@ -203,10 +272,10 @@ export function WildPokemonTab({ s, set, rom }: Props) {
               </span>
               {s.staticLevelModified && (
                 <div className="sub-row items-center">
-                  <input type="range" min={-50} max={50} className="w-36"
+                  <input type="range" min={-100} max={155} className="w-36"
                     value={s.staticLevelModifier}
                     onChange={e => set("staticLevelModifier", Number(e.target.value))} />
-                  <span className="text-sm text-gray-700 w-12 font-mono">
+                  <span className="text-sm text-gray-700 w-14 font-mono">
                     {s.staticLevelModifier >= 0 ? `+${s.staticLevelModifier}` : s.staticLevelModifier}%
                   </span>
                 </div>

@@ -283,4 +283,80 @@ export const tooltips: Record<string, string> = {
     "Controls items found via the Pickup ability.\n• Unchanged: no changes\n• Random: randomize the Pickup item table",
   banBadRandomPickupItems:
     "Removes bad items from the random Pickup item pool.",
+
+  // ── FVX additions ─────────────────────────────────────────────────────────
+  estimateLevelForEvolutionImprovements:
+    "When easier evolutions or other level-affecting changes are applied, estimate the player's expected level and adjust evolution thresholds accordingly.",
+  randomizeMoveNames:
+    "Replaces move names with random alternatives. Cosmetic — does not change move behavior.",
+  randomizeIntroMon:
+    "Randomizes the Pokemon that appears in the game's intro / title screen sequence.",
+  makeEvolutionsEasierLvl:
+    "Target level by which the final stage of an evolution chain should be reachable when 'Make Evolutions Easier' is enabled.",
+  trainersEvolutionLevelModifier:
+    "Percentage modifier applied to the level threshold at which Trainer Pokemon evolve. Negative values make Trainers evolve sooner; positive values delay evolutions.",
+  trainersAvoidDuplicates:
+    "When randomizing Trainer teams, avoid placing duplicate species on the same team.",
+  trainersUseLocalPokemon:
+    "When randomizing Trainer teams, restrict each Trainer to Pokemon that appear in the wild in the same region/area.",
+  trainersEvolveTheirPokemon:
+    "When the player's expected level passes a Trainer Pokemon's evolution threshold, automatically evolve it.",
+  banPrematureEvos:
+    "Prevent Trainers from carrying evolutions that the player could not yet realistically obtain at that point in the game.",
+  diverseTypesForTrainers:
+    "Force the chosen tier of Trainers to use a diverse mix of types instead of clustering around one or two types.",
+  betterTrainerMovesetsTier:
+    "Gives the chosen tier of Trainer Pokemon higher-quality movesets, including TM/tutor/egg/pre-evo moves and ability/stat synergy.",
+  battleStyleMod:
+    "Forces a specific battle style for all Trainer battles.\n• Unchanged: keep each Trainer's original style\n• Random: roll a new style per Trainer\n• Single Style: force every Trainer to use the chosen style",
+  battleStyleType:
+    "When 'Single Style' is selected, every Trainer battle uses this style.",
+  startersTypeMod:
+    "Force a structural constraint on randomized starter types.\n• None: no constraint\n• Fire/Water/Grass: the three starters are exactly Fire/Water/Grass\n• Triangle: starters form a type triangle of any three super-effective relationships\n• Unique: each starter has a different primary type\n• Single Type: every starter shares the chosen single type",
+  startersSingleType:
+    "The type that every starter must have when 'Single Type' is selected.",
+  startersNoLegendaries:
+    "Bans Legendary Pokemon from being chosen as random starters.",
+  startersNoDualTypes:
+    "Bans dual-type Pokemon from being chosen as random starters.",
+  startersBSTLimits:
+    "Restrict random starter selection to species whose Base Stat Total falls between the given minimum and maximum. Leave both at 0 to disable the limit.",
+  randomizeWildPokemon:
+    "Master toggle for wild Pokemon randomization. When disabled, all other wild-Pokemon options are ignored.",
+  wildPokemonZoneMod:
+    "Granularity at which wild Pokemon are mapped.\n• None: per-encounter randomization\n• Encounter Set: all encounters within one set share their mapping\n• Map: all encounters on a single map share their mapping\n• Named Location: mapping is grouped by named in-game location\n• Game: a single global mapping is applied",
+  splitWildZoneByEncounterTypes:
+    "Within each zone, treat each encounter type (grass, surf, fishing, etc.) as a separate group when assigning replacements.",
+  keepWildEvolutionFamilies:
+    "When mapping wild Pokemon, members of the same evolution family stay in the same mapping group.",
+  wildPokemonTypeMod:
+    "Type-based constraint on wild Pokemon replacements.\n• None: no type constraint\n• Keep Primary: replacement shares the primary type of the original\n• Random Themes: each area is themed around a random type",
+  keepWildTypeThemes:
+    "Preserve the original type themes of areas (where they exist) during wild Pokemon randomization.",
+  wildPokemonEvolutionMod:
+    "Evolution-stage constraint on wild Pokemon.\n• None: no constraint\n• Basic Only: only un-evolved species appear in the wild\n• Keep Stage: replacement matches the evolution stage of the original",
+  pokemonPalettesMod:
+    "Controls Pokemon palette (in-game color) randomization.\n• Unchanged: no changes\n• Random: new randomized palette per Pokemon",
+  pokemonPalettesFollowTypes:
+    "When palettes are randomized, base each Pokemon's palette on its type.",
+  pokemonPalettesFollowEvolutions:
+    "When palettes are randomized, an evolution inherits its pre-evolution's palette family.",
+  pokemonPalettesShinyFromNormal:
+    "Generate each Pokemon's shiny palette by tweaking its normal randomized palette, rather than rolling it independently.",
+  typeEffectivenessMod:
+    "Controls the type-effectiveness chart.\n• Unchanged: vanilla matchups\n• Random: each matchup is rolled independently\n• Random (Balanced): same, but constrained so each type's offensive and defensive footprint stays reasonable\n• Keep Identities: each type keeps the *count* of its strong/weak/immune matchups but reshuffles which types they apply to\n• Inverse: invert the chart so resistances become weaknesses and vice versa",
+  inverseTypesRandomImmunities:
+    "When 'Inverse' is selected, also randomize which matchups become immunities instead of mirroring the vanilla immunity pattern.",
+  updateTypeEffectiveness:
+    "Update vanilla type matchups to the modern (post-Gen-6) chart before any randomization is applied.",
+  addCheapRareCandiesToShops:
+    "Sells Rare Candies at a reduced price in randomized Poke Marts.",
+  evosForceGrowth:
+    "When evolutions are randomized, an evolution must have a higher BST than its pre-evolution.",
+  evosNoConvergence:
+    "When evolutions are randomized, prevent two different Pokemon from evolving into the same species.",
+  trainersKeepThemed:
+    "Type-themed trainers keep their original theme even after randomization.",
+  trainersKeepThemeOrPrimary:
+    "Type-themed trainers keep their theme; for non-themed trainers, the replacement matches the original Pokemon's primary type.",
 };

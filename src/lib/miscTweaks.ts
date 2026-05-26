@@ -56,9 +56,9 @@ export const miscTweakOptions: MiscTweakOption[] = [
   },
   {
     bit: 1 << 8,
-    key: "type-effectiveness",
-    label: "Update Type Effectiveness",
-    tooltip: "Updates type matchups to the modern ruleset, without adding Fairy type.",
+    key: "fast-egg-hatching",
+    label: "Fast Egg Hatching",
+    tooltip: "FVX placeholder slot. Currently unused — replaced by the new Type Effectiveness setting on the Pokemon Traits tab.",
   },
   {
     bit: 1 << 9,
@@ -143,5 +143,17 @@ export const miscTweakOptions: MiscTweakOption[] = [
     key: "disable-low-hp-music",
     label: "Disable Low HP Music",
     tooltip: "Prevents low-HP battle music from overriding the current track.",
+  },
+  {
+    bit: 1 << 23,
+    key: "reusable-tms",
+    label: "Reusable TMs",
+    tooltip: "TMs are not consumed when used, matching Gen 5+ behavior. Available in games that originally had single-use TMs.",
+  },
+  {
+    bit: 1 << 24,
+    key: "forgettable-hms",
+    label: "Forgettable HMs",
+    tooltip: "Allows HM moves to be forgotten through normal means, without needing a Move Deleter.",
   },
 ];

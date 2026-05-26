@@ -1,4 +1,6 @@
-import type { UPRSettings, TrainersMod } from "@/types/settings";
+import type {
+  UPRSettings, TrainersMod, BattleStyleModification, BattleStyleType,
+} from "@/types/settings";
 import type { RomProfile } from "@/lib/romDetection";
 import { Tooltip } from "@/components/Tooltip";
 import { tooltips } from "@/lib/tooltips";
@@ -9,20 +11,34 @@ interface Props {
   rom: RomProfile | null;
 }
 
-const TRAINER_MODS: { value: TrainersMod; label: string }[] = [
-  { value: "UNCHANGED",              label: "Unchanged" },
-  { value: "RANDOM",                 label: "Random" },
-  { value: "DISTRIBUTED",            label: "Random (Distributed)" },
-  { value: "MAINPLAYTHROUGH",        label: "Main Playthrough" },
-  { value: "TYPE_THEMED",            label: "Type Themed" },
-  { value: "TYPE_THEMED_ELITE4_GYMS",label: "Type Themed (Elite 4 + Gyms)" },
+const TRAINER_MODS: { value: TrainersMod; label: string; tip?: string }[] = [
+  { value: "UNCHANGED",               label: "Unchanged" },
+  { value: "RANDOM",                  label: "Random" },
+  { value: "DISTRIBUTED",             label: "Random (Distributed)" },
+  { value: "MAINPLAYTHROUGH",         label: "Main Playthrough" },
+  { value: "TYPE_THEMED",             label: "Type Themed" },
+  { value: "TYPE_THEMED_ELITE4_GYMS", label: "Type Themed (E4 + Gyms)" },
+  { value: "KEEP_THEMED",             label: "Keep Themed", tip: tooltips.trainersKeepThemed },
+  { value: "KEEP_THEME_OR_PRIMARY",   label: "Keep Theme / Primary", tip: tooltips.trainersKeepThemeOrPrimary },
+];
+
+const BATTLE_STYLE_MODS: { value: BattleStyleModification; label: string }[] = [
+  { value: "UNCHANGED",     label: "Unchanged" },
+  { value: "RANDOM",        label: "Random" },
+  { value: "SINGLE_STYLE",  label: "Single Style" },
+];
+
+const BATTLE_STYLE_TYPES: { value: BattleStyleType; label: string }[] = [
+  { value: "SINGLE_BATTLE",   label: "Single" },
+  { value: "DOUBLE_BATTLE",   label: "Double" },
+  { value: "TRIPLE_BATTLE",   label: "Triple" },
+  { value: "ROTATION_BATTLE", label: "Rotation" },
 ];
 
 export function TrainersTab({ s, set, rom }: Props) {
   const randomizing = s.trainersMod !== "UNCHANGED";
   const hasMegaEvolutions = rom?.hasMegaEvolutions ?? true;
   const hasFunctionalFormes = rom?.hasFunctionalFormes ?? true;
-  const supportsDoubleBattles = (rom?.generation ?? 3) >= 3;
 
   return (
     <div className="flex flex-col gap-0">
@@ -30,11 +46,11 @@ export function TrainersTab({ s, set, rom }: Props) {
       <div className="panel">
         <span className="panel-title">Trainer Pokemon<Tooltip text={tooltips.trainersMod} /></span>
         <div className="field-row mb-1">
-          {TRAINER_MODS.map(({ value, label }) => (
+          {TRAINER_MODS.map(({ value, label, tip }) => (
             <span key={value} className="radio-label">
               <input type="radio" name="trainersMod" checked={s.trainersMod === value}
                 onChange={() => set("trainersMod", value)} />
-              {label}
+              {label}{tip && <Tooltip text={tip} />}
             </span>
           ))}
         </div>
@@ -68,19 +84,9 @@ export function TrainersTab({ s, set, rom }: Props) {
                 Block Early Wonder Guard<Tooltip text={tooltips.trainersBlockEarlyWonderGuard} />
               </span>
               <span className="checkbox-label">
-                <input type="checkbox" checked={s.betterTrainerMovesets}
-                  onChange={e => set("betterTrainerMovesets", e.target.checked)} />
-                Better Movesets<Tooltip text={tooltips.betterTrainerMovesets} />
-              </span>
-              <span className="checkbox-label">
                 <input type="checkbox" checked={s.swapTrainerMegaEvos} disabled={!hasMegaEvolutions}
                   onChange={e => set("swapTrainerMegaEvos", e.target.checked)} />
                 Swap Mega Evolutions<Tooltip text={tooltips.swapTrainerMegaEvos} />
-              </span>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.doubleBattleMode} disabled={!supportsDoubleBattles}
-                  onChange={e => set("doubleBattleMode", e.target.checked)} />
-                Double Battle Mode<Tooltip text={tooltips.doubleBattleMode} />
               </span>
               <span className="checkbox-label">
                 <input type="checkbox" checked={s.shinyChance}
@@ -92,6 +98,16 @@ export function TrainersTab({ s, set, rom }: Props) {
                   onChange={e => set("allowTrainerAlternateFormes", e.target.checked)} />
                 Allow Alt Formes<Tooltip text={tooltips.allowTrainerAlternateFormes} />
               </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.trainersAvoidDuplicates}
+                  onChange={e => set("trainersAvoidDuplicates", e.target.checked)} />
+                Avoid Duplicates<Tooltip text={tooltips.trainersAvoidDuplicates} />
+              </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.trainersUseLocalPokemon}
+                  onChange={e => set("trainersUseLocalPokemon", e.target.checked)} />
+                Use Local Pokemon<Tooltip text={tooltips.trainersUseLocalPokemon} />
+              </span>
             </div>
           </div>
         )}
@@ -99,6 +115,76 @@ export function TrainersTab({ s, set, rom }: Props) {
 
       {randomizing && (
         <>
+          {/* Type Diversity per trainer tier (FVX) */}
+          <div className="panel">
+            <span className="panel-title">Type Diversity by Tier<Tooltip text={tooltips.diverseTypesForTrainers} /></span>
+            <div className="field-row">
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.diverseTypesForBossTrainers}
+                  onChange={e => set("diverseTypesForBossTrainers", e.target.checked)} />
+                Boss Trainers
+              </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.diverseTypesForImportantTrainers}
+                  onChange={e => set("diverseTypesForImportantTrainers", e.target.checked)} />
+                Important Trainers
+              </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.diverseTypesForRegularTrainers}
+                  onChange={e => set("diverseTypesForRegularTrainers", e.target.checked)} />
+                Regular Trainers
+              </span>
+            </div>
+          </div>
+
+          {/* Better movesets per trainer tier (FVX) */}
+          <div className="panel">
+            <span className="panel-title">Better Movesets by Tier<Tooltip text={tooltips.betterTrainerMovesetsTier} /></span>
+            <div className="field-row">
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.betterBossTrainerMovesets}
+                  onChange={e => set("betterBossTrainerMovesets", e.target.checked)} />
+                Boss Trainers
+              </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.betterImportantTrainerMovesets}
+                  onChange={e => set("betterImportantTrainerMovesets", e.target.checked)} />
+                Important Trainers
+              </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.betterRegularTrainerMovesets}
+                  onChange={e => set("betterRegularTrainerMovesets", e.target.checked)} />
+                Regular Trainers
+              </span>
+            </div>
+          </div>
+
+          {/* Battle Style (FVX replacement for Double Battle Mode) */}
+          <div className="panel">
+            <span className="panel-title">Battle Style<Tooltip text={tooltips.battleStyleMod} /></span>
+            <div className="field-row mb-1">
+              {BATTLE_STYLE_MODS.map(({ value, label }) => (
+                <span key={value} className="radio-label">
+                  <input type="radio" name="battleStyleMod" checked={s.battleStyleModification === value}
+                    onChange={() => set("battleStyleModification", value)} />
+                  {label}
+                </span>
+              ))}
+            </div>
+            {s.battleStyleModification === "SINGLE_STYLE" && (
+              <div className="sub-row">
+                <span className="text-xs text-gray-500">Style:<Tooltip text={tooltips.battleStyleType} /></span>
+                {BATTLE_STYLE_TYPES.map(({ value, label }) => (
+                  <span key={value} className="radio-label">
+                    <input type="radio" name="battleStyleType" checked={s.battleStyleType === value}
+                      onChange={() => set("battleStyleType", value)} />
+                    {label}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="panel">
             <span className="panel-title">Additional Pokemon per Trainer</span>
             <div className="flex flex-wrap gap-4">
@@ -119,18 +205,28 @@ export function TrainersTab({ s, set, rom }: Props) {
           </div>
 
           <div className="panel">
-            <span className="panel-title">Force Fully Evolved</span>
-            <span className="checkbox-label">
-              <input type="checkbox" checked={s.trainersForceFullyEvolved}
-                onChange={e => set("trainersForceFullyEvolved", e.target.checked)} />
-              Force Fully Evolved at Level<Tooltip text={tooltips.trainersForceFullyEvolved} />
-            </span>
-            {s.trainersForceFullyEvolved && (
-              <div className="sub-row">
-                <span className="text-xs text-gray-500">Level:</span>
-                <input type="number" min={1} max={100} className="input-field"
-                  value={s.trainersForceFullyEvolvedLevel}
-                  onChange={e => set("trainersForceFullyEvolvedLevel", Number(e.target.value))} />
+            <span className="panel-title">Evolution Behavior</span>
+            <div className="field-row">
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.trainersEvolveTheirPokemon}
+                  onChange={e => set("trainersEvolveTheirPokemon", e.target.checked)} />
+                Evolve Trainer Pokemon by Expected Level<Tooltip text={tooltips.trainersEvolveTheirPokemon} />
+              </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.banPrematureEvos}
+                  onChange={e => set("banPrematureEvos", e.target.checked)} />
+                Ban Premature Evolutions<Tooltip text={tooltips.banPrematureEvos} />
+              </span>
+            </div>
+            {s.trainersEvolveTheirPokemon && (
+              <div className="sub-row items-center">
+                <span className="text-xs text-gray-500">Evolution level modifier:<Tooltip text={tooltips.trainersEvolutionLevelModifier} /></span>
+                <input type="range" min={-100} max={155} className="w-36"
+                  value={s.trainersEvolutionLevelModifier}
+                  onChange={e => set("trainersEvolutionLevelModifier", Number(e.target.value))} />
+                <span className="text-sm text-gray-700 w-14 font-mono">
+                  {s.trainersEvolutionLevelModifier >= 0 ? `+${s.trainersEvolutionLevelModifier}` : s.trainersEvolutionLevelModifier}%
+                </span>
               </div>
             )}
           </div>
@@ -144,10 +240,10 @@ export function TrainersTab({ s, set, rom }: Props) {
             </span>
             {s.trainersLevelModified && (
               <div className="sub-row items-center">
-                <input type="range" min={-50} max={50} className="w-36"
+                <input type="range" min={-100} max={155} className="w-36"
                   value={s.trainersLevelModifier}
                   onChange={e => set("trainersLevelModifier", Number(e.target.value))} />
-                <span className="text-sm text-gray-700 w-12 font-mono">
+                <span className="text-sm text-gray-700 w-14 font-mono">
                   {s.trainersLevelModifier >= 0 ? `+${s.trainersLevelModifier}` : s.trainersLevelModifier}%
                 </span>
               </div>

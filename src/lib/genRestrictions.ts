@@ -1,19 +1,25 @@
+// Mirrors com.uprfvx.romio.gamedata.GenRestrictions (UPR-FVX 1.5.1).
+// Bit layout shifted in FVX: evolutionary relatives = bit 0, gen N = bit N.
+
 export interface ParsedGenRestrictions {
   generations: Record<1 | 2 | 3 | 4 | 5 | 6 | 7, boolean>;
   allowEvolutionaryRelatives: boolean;
 }
 
+const EVOLUTIONARY_RELATIVES_BIT = 1 << 0;
+
 const GEN_BITS: Record<1 | 2 | 3 | 4 | 5 | 6 | 7, number> = {
-  1: 1 << 0,
-  2: 1 << 1,
-  3: 1 << 2,
-  4: 1 << 3,
-  5: 1 << 4,
-  6: 1 << 5,
-  7: 1 << 6,
+  1: 1 << 1,
+  2: 1 << 2,
+  3: 1 << 3,
+  4: 1 << 4,
+  5: 1 << 5,
+  6: 1 << 6,
+  7: 1 << 7,
 };
 
-const EVOLUTIONARY_RELATIVES_BIT = 1 << 7;
+const ALL_GEN_BITS = GEN_BITS[1] | GEN_BITS[2] | GEN_BITS[3]
+  | GEN_BITS[4] | GEN_BITS[5] | GEN_BITS[6] | GEN_BITS[7];
 
 export function parseGenRestrictions(mask: number): ParsedGenRestrictions {
   return {
@@ -48,7 +54,7 @@ export function encodeGenRestrictions(parsed: ParsedGenRestrictions): number {
 
 export function generationRestrictionMask(maxGeneration: number | null): number {
   if (maxGeneration === null || maxGeneration >= 7) {
-    return 0xff;
+    return ALL_GEN_BITS | EVOLUTIONARY_RELATIVES_BIT;
   }
 
   let mask = 0;
@@ -62,5 +68,5 @@ export function generationRestrictionMask(maxGeneration: number | null): number 
 }
 
 export function hasAnyGenerationSelected(mask: number): boolean {
-  return (mask & 0x7f) !== 0;
+  return (mask & ALL_GEN_BITS) !== 0;
 }

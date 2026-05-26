@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/fetch-randomizer-jar.mjs",
     "build": "tsc -b && vite build",
     "build:gh-pages": "APP_BASE_PATH=/upr-web/ npm run build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "fetch-jar": "node scripts/fetch-randomizer-jar.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.462.0",

@@ -44,6 +44,20 @@ export async function cheerpjRandomize(
     throw new Error(`CheerpJ file staging failed: ${String(error)}`);
   }
 
+  // CheerpJ routes the JVM's System.out / System.err to the browser console.
+  // Capture it so the randomizer's output — and, on failure, its error/stack
+  // trace — is surfaced instead of being silently lost.
+  const consoleMethods = ["log", "info", "warn", "error", "debug"] as const;
+  const captured: string[] = [];
+  const originals: Record<string, (...args: unknown[]) => void> = {};
+  for (const name of consoleMethods) {
+    originals[name] = console[name];
+    console[name] = (...args: unknown[]) => {
+      captured.push(args.map(arg => String(arg)).join(" "));
+      originals[name](...args);
+    };
+  }
+
   // Run the JAR; output goes to /files/ (writable from Java)
   let exitCode: number;
   try {
@@ -56,10 +70,13 @@ export async function cheerpjRandomize(
       "-l"
     );
   } catch (error) {
-    throw new Error(`CheerpJ JAR execution failed: ${String(error)}`);
+    throw new Error(`CheerpJ JAR execution failed: ${String(error)}\n${captured.join("\n")}`.trim());
+  } finally {
+    for (const name of consoleMethods) console[name] = originals[name];
   }
+
   if (exitCode !== 0) {
-    throw new Error(`Randomizer exited with code ${exitCode}`);
+    throw new Error(`Randomizer exited with code ${exitCode}.\n${captured.join("\n")}`.trim());
   }
 
   // Read the output ROM
@@ -70,9 +87,18 @@ export async function cheerpjRandomize(
     throw new Error(`CheerpJ output read failed at ${outputPath}: ${String(error)}`);
   }
 
+  // The CLI writes a detailed log next to the output ROM when -l is passed.
+  let log = captured.join("\n");
+  try {
+    const logBlob = await cjFileBlob(`${outputPath}.log`);
+    const text = (await logBlob.text()).replace(/^﻿/, "");
+    if (text.trim()) log = text;
+  } catch {
+    // No log file (older builds / write failure) — fall back to captured output.
+  }
+
   // Derive output filename from input
   const outName = romFile.name.replace(/(\.[^.]+)$/, "_randomized$1");
 
-  // Note: CheerpJ stdout is not easily capturable — log will be empty
-  return { romBlob: blob, filename: outName, log: "" };
+  return { romBlob: blob, filename: outName, log };
 }

@@ -11,7 +11,7 @@ function ensureInit(): Promise<void> {
     if (typeof cheerpjInit !== "function") {
       throw new Error("CheerpJ loader not available");
     }
-    _initPromise = cheerpjInit({ javaProperties: ["java.awt.headless=true"] });
+    _initPromise = cheerpjInit({ version: 17, javaProperties: ["java.awt.headless=true"] });
   }
   return _initPromise!;
 }

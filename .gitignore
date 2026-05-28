@@ -2,3 +2,5 @@ node_modules/
 dist/
 randomizer/build/
 *.jar
+# The randomizer jar is committed (rebuilt for Java 17 so CheerpJ can run it).
+!public/randomizer.jar

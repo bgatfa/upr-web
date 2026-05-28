@@ -1,0 +1,1091 @@
+diff --git a/build.gradle.kts b/build.gradle.kts
+index f6cf77e..ea09bb0 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -9,10 +9,14 @@ subprojects {
+ 
+     java {
+         toolchain {
+-            languageVersion = JavaLanguageVersion.of(25)
++            languageVersion = JavaLanguageVersion.of(21)
+         }
+     }
+ 
++    tasks.withType<JavaCompile>().configureEach {
++        options.release.set(17)
++    }
++
+     repositories {
+         mavenCentral()
+         maven("https://www.jetbrains.com/intellij-repository/releases") // to get IntelliJ's GUI form builder
+diff --git a/random/src/main/java/com/uprfvx/random/gui/RandomizerGUI.java b/random/src/main/java/com/uprfvx/random/gui/RandomizerGUI.java
+index 4dd2297..55e1d81 100644
+--- a/random/src/main/java/com/uprfvx/random/gui/RandomizerGUI.java
++++ b/random/src/main/java/com/uprfvx/random/gui/RandomizerGUI.java
+@@ -500,96 +500,96 @@ public class RandomizerGUI {
+ 
+         frame.setTitle(String.format(bundle.getString("GUI.windowTitle"),Version.LATEST.name));
+ 
+-        openROMButton.addActionListener(_ -> selectAndOpenRom());
+-        pbsUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        pbsShuffleRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        pbsRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        pbsFollowMegaEvosCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        pbsFollowEvolutionsCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        pbsStandardizeEXPCurvesCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        paUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        paRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        peUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        peRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        peRandomEveryLevelRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        peChangeImpossibleEvosCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        peMakeEvolutionsEasierCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        peMakeEvolutionsEasierLvlSlider.addChangeListener(_ -> updateFullyEvolvedAtLvlLabel());
+-        peAllowAltFormesCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        spUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spCustomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spComboBox1.addActionListener(_ -> enableOrDisableSubControls());
+-        spComboBox2.addActionListener(_ -> enableOrDisableSubControls());
+-        spComboBox3.addActionListener(_ -> enableOrDisableSubControls());
+-        spRandomCompletelyRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spRandomTwoEvosRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spRandomBasicRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spTypeNoneRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spTypeFwgRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spTypeTriangleRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spTypeSingleRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spBSTMinimumCheckbox.addActionListener(_ -> enableOrDisableSubControls());
+-        spBSTMaximumCheckbox.addActionListener(_ -> enableOrDisableSubControls());
+-        spBSTMinimumSpinner.addChangeListener(_ -> checkSpMaximumNeedsRaise());
+-        spBSTMaximumSpinner.addChangeListener(_ -> checkSpMinimumNeedsLower());
+-        stpUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        stpSwapLegendariesSwapStandardsRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        stpRandomCompletelyRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        stpRandomSimilarStrengthRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        stpPercentageLevelModifierCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        igtUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        igtRandomizeGivenPokemonOnlyRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        igtRandomizeBothRequestedGivenRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        pmsUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        pmsRandomPreferringSameTypeRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        pmsRandomCompletelyRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        pmsMetronomeOnlyModeRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        pmsGuaranteedLevel1MovesCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        pmsForceGoodDamagingCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpTrainersEvolveTheirPokemonCheckbox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpPercentageEvolutionLevelModifierSpinSlider.addChangeListener(_ -> updateFullyEvolvedAtLvlLabel());
+-        tpPercentageLevelModifierCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpEliteFourUniquePokemonCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpUnchangedBattleStyleRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        tpRandomBattleStyleRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        tpSingleStyleRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-
+-        wpRandomizeWildPokemonCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        wpZoneNoneRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        wpZoneEncounterSetRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        wpZoneMapRadioButton.addActionListener(_->enableOrDisableSubControls());
+-        wpZoneNamedLocationRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        wpZoneGameRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        wpTRNoneRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        wpTRThemedAreasRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        wpTRKeepPrimaryRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        wpSimilarStrengthCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        wpSetMinimumCatchRateCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        wpRandomizeHeldItemsCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        wpPercentageLevelModifierCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tmUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        tmRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        tmForceGoodDamagingCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        thcUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        thcRandomPreferSameTypeRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        thcRandomCompletelyRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        thcFullCompatibilityRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        mtUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        mtRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        mtForceGoodDamagingCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        mtcUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        mtcRandomPreferSameTypeRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        mtcRandomCompletelyRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        mtcFullCompatibilityRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        fiUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        fiShuffleRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        fiRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        fiRandomEvenDistributionRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        shUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        shShuffleRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        shRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        puUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        puRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
++        openROMButton.addActionListener(ignored -> selectAndOpenRom());
++        pbsUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        pbsShuffleRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        pbsRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        pbsFollowMegaEvosCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        pbsFollowEvolutionsCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        pbsStandardizeEXPCurvesCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        paUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        paRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        peUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        peRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        peRandomEveryLevelRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        peChangeImpossibleEvosCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        peMakeEvolutionsEasierCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        peMakeEvolutionsEasierLvlSlider.addChangeListener(ignored -> updateFullyEvolvedAtLvlLabel());
++        peAllowAltFormesCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        spUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spCustomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spComboBox1.addActionListener(ignored -> enableOrDisableSubControls());
++        spComboBox2.addActionListener(ignored -> enableOrDisableSubControls());
++        spComboBox3.addActionListener(ignored -> enableOrDisableSubControls());
++        spRandomCompletelyRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spRandomTwoEvosRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spRandomBasicRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spTypeNoneRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spTypeFwgRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spTypeTriangleRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spTypeSingleRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spBSTMinimumCheckbox.addActionListener(ignored -> enableOrDisableSubControls());
++        spBSTMaximumCheckbox.addActionListener(ignored -> enableOrDisableSubControls());
++        spBSTMinimumSpinner.addChangeListener(ignored -> checkSpMaximumNeedsRaise());
++        spBSTMaximumSpinner.addChangeListener(ignored -> checkSpMinimumNeedsLower());
++        stpUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        stpSwapLegendariesSwapStandardsRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        stpRandomCompletelyRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        stpRandomSimilarStrengthRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        stpPercentageLevelModifierCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        igtUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        igtRandomizeGivenPokemonOnlyRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        igtRandomizeBothRequestedGivenRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        pmsUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        pmsRandomPreferringSameTypeRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        pmsRandomCompletelyRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        pmsMetronomeOnlyModeRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        pmsGuaranteedLevel1MovesCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        pmsForceGoodDamagingCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpTrainersEvolveTheirPokemonCheckbox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpPercentageEvolutionLevelModifierSpinSlider.addChangeListener(ignored -> updateFullyEvolvedAtLvlLabel());
++        tpPercentageLevelModifierCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpEliteFourUniquePokemonCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpUnchangedBattleStyleRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        tpRandomBattleStyleRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        tpSingleStyleRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++
++        wpRandomizeWildPokemonCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        wpZoneNoneRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        wpZoneEncounterSetRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        wpZoneMapRadioButton.addActionListener(ignored ->enableOrDisableSubControls());
++        wpZoneNamedLocationRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        wpZoneGameRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        wpTRNoneRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        wpTRThemedAreasRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        wpTRKeepPrimaryRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        wpSimilarStrengthCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        wpSetMinimumCatchRateCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        wpRandomizeHeldItemsCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        wpPercentageLevelModifierCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tmUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        tmRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        tmForceGoodDamagingCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        thcUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        thcRandomPreferSameTypeRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        thcRandomCompletelyRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        thcFullCompatibilityRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        mtUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        mtRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        mtForceGoodDamagingCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        mtcUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        mtcRandomPreferSameTypeRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        mtcRandomCompletelyRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        mtcFullCompatibilityRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        fiUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        fiShuffleRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        fiRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        fiRandomEvenDistributionRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        shUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        shShuffleRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        shRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        puUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        puRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
+         websiteLinkLabel.addMouseListener(new MouseAdapter() {
+             @Override
+             public void mouseClicked(MouseEvent e) {
+@@ -612,18 +612,18 @@ public class RandomizerGUI {
+                 }
+             }
+         });
+-        randomizeSaveButton.addActionListener(_ -> saveROM());
+-        premadeSeedButton.addActionListener(_ -> presetLoader());
+-        loadSettingsButton.addActionListener(_ -> loadQS());
+-        saveSettingsButton.addActionListener(_ -> saveQS());
+-        settingsButton.addActionListener(_ -> settingsMenu.show(settingsButton,0,settingsButton.getHeight()));
+-        themeSelectionMenuItem.addActionListener(_ -> new ThemeSelectionDialog(this, frame));
+-        customNamesEditorMenuItem.addActionListener(_ -> new CustomNamesEditorDialog(frame));
+-        applyGameUpdateMenuItem.addActionListener(_ -> applyGameUpdateMenuItemActionPerformed());
+-        removeGameUpdateMenuItem.addActionListener(_ -> removeGameUpdateMenuItemActionPerformed());
+-        loadGetSettingsMenuItem.addActionListener(_ -> loadGetSettingsMenuItemActionPerformed());
+-        keepOrUnloadGameAfterRandomizingMenuItem.addActionListener(_ -> keepOrUnloadGameAfterRandomizingMenuItemActionPerformed());
+-        limitPokemonButton.addActionListener(_ -> {
++        randomizeSaveButton.addActionListener(ignored -> saveROM());
++        premadeSeedButton.addActionListener(ignored -> presetLoader());
++        loadSettingsButton.addActionListener(ignored -> loadQS());
++        saveSettingsButton.addActionListener(ignored -> saveQS());
++        settingsButton.addActionListener(ignored -> settingsMenu.show(settingsButton,0,settingsButton.getHeight()));
++        themeSelectionMenuItem.addActionListener(ignored -> new ThemeSelectionDialog(this, frame));
++        customNamesEditorMenuItem.addActionListener(ignored -> new CustomNamesEditorDialog(frame));
++        applyGameUpdateMenuItem.addActionListener(ignored -> applyGameUpdateMenuItemActionPerformed());
++        removeGameUpdateMenuItem.addActionListener(ignored -> removeGameUpdateMenuItemActionPerformed());
++        loadGetSettingsMenuItem.addActionListener(ignored -> loadGetSettingsMenuItemActionPerformed());
++        keepOrUnloadGameAfterRandomizingMenuItem.addActionListener(ignored -> keepOrUnloadGameAfterRandomizingMenuItemActionPerformed());
++        limitPokemonButton.addActionListener(ignored -> {
+             GenerationLimitDialog gld = new GenerationLimitDialog(frame, currentRestrictions,
+                     romHandler.generationOfPokemon(), romHandler.forceSwapStaticMegaEvos());
+             if (gld.pressedOK()) {
+@@ -636,23 +636,23 @@ public class RandomizerGUI {
+                 }
+             }
+         });
+-        limitPokemonCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpAllowAlternateFormesCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpBossTrainersCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpImportantTrainersCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpRegularTrainersCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpBossTrainersItemsCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpImportantTrainersItemsCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tpRegularTrainersItemsCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        totpUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        totpRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        totpRandomSimilarStrengthRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        totpAllyUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        totpAllyRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        totpAllyRandomSimilarStrengthRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        totpPercentageLevelModifierCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        pbsUpdateBaseStatsCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        mdUpdateMovesCheckBox.addActionListener(_ -> enableOrDisableSubControls());
++        limitPokemonCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpAllowAlternateFormesCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpBossTrainersCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpImportantTrainersCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpRegularTrainersCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpBossTrainersItemsCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpImportantTrainersItemsCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tpRegularTrainersItemsCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        totpUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        totpRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        totpRandomSimilarStrengthRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        totpAllyUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        totpAllyRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        totpAllyRandomSimilarStrengthRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        totpPercentageLevelModifierCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        pbsUpdateBaseStatsCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        mdUpdateMovesCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
+         frame.addComponentListener(new ComponentListener() {
+             @Override
+             public void componentResized(ComponentEvent e) {
+@@ -674,31 +674,31 @@ public class RandomizerGUI {
+ 
+             }
+         });
+-        ptUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        ptRandomFollowEvolutionsRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        ptRandomCompletelyRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        spRandomizeStarterHeldItemsCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        tmLevelupMoveSanityCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        mtLevelupMoveSanityCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        noIrregularAltFormesCheckBox.addActionListener(_ -> enableOrDisableSubControls());
++        ptUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        ptRandomFollowEvolutionsRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        ptRandomCompletelyRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        spRandomizeStarterHeldItemsCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        tmLevelupMoveSanityCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        mtLevelupMoveSanityCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        noIrregularAltFormesCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
+         noPrematureEvosCheckbox.addActionListener(e -> enableOrDisableSubControls());
+-        ptIsDualTypeCheckBox.addActionListener(_ -> enableOrDisableSubControls());
+-        spTypeNoDualCheckbox.addActionListener(_->enableOrDisableSubControls());
+-        teUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        teRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        teRandomBalancedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        teKeepTypeIdentitiesRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        teInverseRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        ppalUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        ppalRandomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        cpgUnchangedRadioButton.addActionListener(_ -> enableOrDisableSubControls());
+-        cpgCustomRadioButton.addActionListener(_ -> enableOrDisableSubControls());
++        ptIsDualTypeCheckBox.addActionListener(ignored -> enableOrDisableSubControls());
++        spTypeNoDualCheckbox.addActionListener(ignored ->enableOrDisableSubControls());
++        teUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        teRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        teRandomBalancedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        teKeepTypeIdentitiesRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        teInverseRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        ppalUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        ppalRandomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        cpgUnchangedRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
++        cpgCustomRadioButton.addActionListener(ignored -> enableOrDisableSubControls());
+         tpComboBox.addItemListener(e -> {
+             if (e.getStateChange() == ItemEvent.SELECTED) {
+                 enableOrDisableSubControls();
+             }
+         });
+-        batchRandomizationMenuItem.addActionListener(_ -> batchRandomizationSettingsDialog());
++        batchRandomizationMenuItem.addActionListener(ignored -> batchRandomizationSettingsDialog());
+     }
+ 
+     private void checkSpMinimumNeedsLower() {
+diff --git a/random/src/main/java/com/uprfvx/random/log/RandomizationLogger.java b/random/src/main/java/com/uprfvx/random/log/RandomizationLogger.java
+index cf61200..3e345e3 100644
+--- a/random/src/main/java/com/uprfvx/random/log/RandomizationLogger.java
++++ b/random/src/main/java/com/uprfvx/random/log/RandomizationLogger.java
+@@ -685,9 +685,9 @@ public class RandomizationLogger {
+         List<Item> heldItems = romHandler.getStarterHeldItems();
+ 
+         for (int i = 0; i < starters.size(); i++) {
+-            if (heldItems.size() == 1 && heldItems.getFirst() != null) {
++            if (heldItems.size() == 1 && heldItems.get(0) != null) {
+                 log.printf(getBS("Log.sp.setWithItem"), i + 1, starters.get(i).getFullName(),
+-                        heldItems.getFirst().getName());
++                        heldItems.get(0).getName());
+             } else if (heldItems.size() == starters.size() && heldItems.get(i) != null) {
+                 log.printf(getBS("Log.sp.setWithItem"), i + 1, starters.get(i).getFullName(),
+                         heldItems.get(i).getName());
+@@ -1158,12 +1158,15 @@ public class RandomizationLogger {
+     }
+ 
+     private String getSOSString(Encounter e) {
+-        return switch (e.getSosType()) {
++        var sosType = e.getSosType();
++        if (sosType == null) {
++            return "THIS SHOULD NOT BE SEEN, PLEASE REPORT BUG";
++        }
++        return switch (sosType) {
+             case RAIN -> getBS("Log.wp.rainSOS");
+             case HAIL -> getBS("Log.wp.hailSOS");
+             case SAND -> getBS("Log.wp.sandSOS");
+             case GENERIC -> getBS("Log.wp.genericSOS");
+-            case null -> "THIS SHOULD NOT BE SEEN, PLEASE REPORT BUG";
+         };
+     }
+ 
+diff --git a/romio/src/main/java/com/uprfvx/romio/constants/Gen2Constants.java b/romio/src/main/java/com/uprfvx/romio/constants/Gen2Constants.java
+index 1e8e180..1f95ff9 100644
+--- a/romio/src/main/java/com/uprfvx/romio/constants/Gen2Constants.java
++++ b/romio/src/main/java/com/uprfvx/romio/constants/Gen2Constants.java
+@@ -386,6 +386,9 @@ public class Gen2Constants {
+     }
+ 
+     public static byte typeToByte(Type type) {
++        if (type == null) {
++            return (byte) 0x13; // ???-type
++        }
+         return switch (type) {
+             case NORMAL -> 0x00;
+             case FIGHTING -> 0x01;
+@@ -395,7 +398,6 @@ public class Gen2Constants {
+             case ROCK -> 0x05;
+             case BUG -> 0x07;
+             case GHOST -> 0x08;
+-            case null -> 0x13; // ???-type
+             case FIRE -> 0x14;
+             case WATER -> 0x15;
+             case GRASS -> 0x16;
+diff --git a/romio/src/main/java/com/uprfvx/romio/constants/Gen3Constants.java b/romio/src/main/java/com/uprfvx/romio/constants/Gen3Constants.java
+index fb07a51..a17e4dc 100644
+--- a/romio/src/main/java/com/uprfvx/romio/constants/Gen3Constants.java
++++ b/romio/src/main/java/com/uprfvx/romio/constants/Gen3Constants.java
+@@ -493,6 +493,9 @@ public class Gen3Constants {
+     }
+ 
+     public static byte typeToByte(Type type) {
++        if (type == null) {
++            return (byte) 0x09; // ???-type
++        }
+         return switch (type) {
+             case NORMAL -> 0x00;
+             case FIGHTING -> 0x01;
+@@ -502,7 +505,6 @@ public class Gen3Constants {
+             case ROCK -> 0x05;
+             case BUG -> 0x06;
+             case GHOST -> 0x07;
+-            case null -> 0x09; // ???-type
+             case FIRE -> 0x0A;
+             case WATER -> 0x0B;
+             case GRASS -> 0x0C;
+diff --git a/romio/src/main/java/com/uprfvx/romio/constants/Gen4Constants.java b/romio/src/main/java/com/uprfvx/romio/constants/Gen4Constants.java
+index d379be1..e71469a 100644
+--- a/romio/src/main/java/com/uprfvx/romio/constants/Gen4Constants.java
++++ b/romio/src/main/java/com/uprfvx/romio/constants/Gen4Constants.java
+@@ -1404,6 +1404,9 @@ public class Gen4Constants {
+     }
+ 
+     public static byte typeToByte(Type type) {
++        if (type == null) {
++            return (byte) 0x09; // ???-type
++        }
+         return switch (type) {
+             case NORMAL -> 0x00;
+             case FIGHTING -> 0x01;
+@@ -1413,7 +1416,6 @@ public class Gen4Constants {
+             case ROCK -> 0x05;
+             case BUG -> 0x06;
+             case GHOST -> 0x07;
+-            case null -> 0x09; // ???-type
+             case FIRE -> 0x0A;
+             case WATER -> 0x0B;
+             case GRASS -> 0x0C;
+diff --git a/romio/src/main/java/com/uprfvx/romio/constants/Gen5Constants.java b/romio/src/main/java/com/uprfvx/romio/constants/Gen5Constants.java
+index 45c1adf..dbc26bb 100644
+--- a/romio/src/main/java/com/uprfvx/romio/constants/Gen5Constants.java
++++ b/romio/src/main/java/com/uprfvx/romio/constants/Gen5Constants.java
+@@ -500,8 +500,10 @@ public class Gen5Constants {
+     }
+ 
+     public static byte typeToByte(Type type) {
++        if (type == null) {
++            return (byte) 0x00; // no ???-type, so make normal
++        }
+         return switch (type) {
+-            case null -> 0x00; // no ???-type, so make normal
+             case NORMAL -> 0x00;
+             case FIGHTING -> 0x01;
+             case FLYING -> 0x02;
+diff --git a/romio/src/main/java/com/uprfvx/romio/constants/Gen6Constants.java b/romio/src/main/java/com/uprfvx/romio/constants/Gen6Constants.java
+index 150eb2d..683810c 100644
+--- a/romio/src/main/java/com/uprfvx/romio/constants/Gen6Constants.java
++++ b/romio/src/main/java/com/uprfvx/romio/constants/Gen6Constants.java
+@@ -636,8 +636,10 @@ public class Gen6Constants {
+     }
+ 
+     public static byte typeToByte(Type type) {
++        if (type == null) {
++            return (byte) 0x00; // no ???-type, so make normal
++        }
+         return switch (type) {
+-            case null -> 0x00; // no ???-type, so make normal
+             case NORMAL -> 0x00;
+             case FIGHTING -> 0x01;
+             case FLYING -> 0x02;
+diff --git a/romio/src/main/java/com/uprfvx/romio/constants/Gen7Constants.java b/romio/src/main/java/com/uprfvx/romio/constants/Gen7Constants.java
+index 2e7d889..4aad347 100644
+--- a/romio/src/main/java/com/uprfvx/romio/constants/Gen7Constants.java
++++ b/romio/src/main/java/com/uprfvx/romio/constants/Gen7Constants.java
+@@ -793,8 +793,10 @@ public class Gen7Constants {
+     }
+ 
+     public static byte typeToByte(Type type) {
++        if (type == null) {
++            return (byte) 0x00; // no ???-type, so make normal
++        }
+         return switch (type) {
+-            case null -> 0x00; // no ???-type, so make normal
+             case NORMAL -> 0x00;
+             case FIGHTING -> 0x01;
+             case FLYING -> 0x02;
+diff --git a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen1RomHandler.java b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen1RomHandler.java
+index 005686e..36f2462 100644
+--- a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen1RomHandler.java
++++ b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen1RomHandler.java
+@@ -1060,7 +1060,7 @@ public class Gen1RomHandler extends AbstractGBCRomHandler {
+     private void writeOldRodEncounters(Iterator<EncounterArea> areaIterator) {
+         int oldRodOffset = romEntry.getIntValue("OldRodOffset");
+         EncounterArea area = areaIterator.next();
+-        Encounter oldRodEnc = area.getFirst();
++        Encounter oldRodEnc = area.get(0);
+         writeBytes(oldRodOffset + 1, new byte[]{
+                 (byte) pokeNumToRBYTable[oldRodEnc.getSpecies().getNumber()],
+                 (byte) oldRodEnc.getLevel()
+@@ -1303,7 +1303,7 @@ public class Gen1RomHandler extends AbstractGBCRomHandler {
+         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         if (!trainer.pokemonHaveDifferentLevels()) {
+             // Regular trainer
+-            int fixedLevel = trainer.getPokemon().getFirst().getLevel();
++            int fixedLevel = trainer.getPokemon().get(0).getLevel();
+             baos.write(fixedLevel);
+             for (TrainerPokemon tp : trainer.getPokemon()) {
+                 baos.write((byte) pokeNumToRBYTable[tp.getSpecies().getNumber()]);
+@@ -1765,7 +1765,7 @@ public class Gen1RomHandler extends AbstractGBCRomHandler {
+         } else if (found.size() > 1) {
+             return -2; // not unique
+         } else {
+-            return found.getFirst();
++            return found.get(0);
+         }
+     }
+ 
+diff --git a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen2RomHandler.java b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen2RomHandler.java
+index 719099b..c0c0ffe 100644
+--- a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen2RomHandler.java
++++ b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen2RomHandler.java
+@@ -1886,7 +1886,7 @@ public class Gen2RomHandler extends AbstractGBCRomHandler {
+         } else if (found.size() > 1) {
+             return -2; // not unique
+         } else {
+-            return found.getFirst();
++            return found.get(0);
+         }
+     }
+ 
+diff --git a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen3RomHandler.java b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen3RomHandler.java
+index babd4fd..79a1009 100644
+--- a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen3RomHandler.java
++++ b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen3RomHandler.java
+@@ -1393,7 +1393,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
+         if (items.size() != 1) {
+             return;
+         }
+-        Item item = items.getFirst();
++        Item item = items.get(0);
+         if (romEntry.getRomType() == Gen3Constants.RomType_FRLG) {
+             // offset from normal starter offset as a word
+             int baseOffset = romEntry.getIntValue("StarterPokemon");
+@@ -1884,7 +1884,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
+         // The Mossdeep Steven trainer is special because it is *not* really a trainer to the game, just Pokemon data.
+         // The randomizer surrounds this data with a Trainer object so it can be randomized.
+ 		int mossdeepStevenOffset = romEntry.getIntValue("MossdeepStevenTeamOffset");
+-		Trainer mossdeepSteven = trainers.getLast();
++		Trainer mossdeepSteven = trainers.get(trainers.size() - 1);
+ 
+         // The below code *could* be implemented using trainerPokemonToBytes(mossdeepSteven), but then extra
+         // precautions would need to be taken so the mossdeepSteven Trainer's properties aren't changed.
+@@ -2230,25 +2230,25 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
+ 
+     private void getRoamers(List<StaticEncounter> statics) throws IOException {
+         if (romEntry.getRomType() == Gen3Constants.RomType_Ruby) {
+-            int firstSpecies = readWord(rom, romEntry.getRoamingPokemon().getFirst().speciesOffsets[0]);
++            int firstSpecies = readWord(rom, romEntry.getRoamingPokemon().get(0).speciesOffsets[0]);
+             if (firstSpecies == 0) {
+                 // Before applying the patch, the first species offset will be pointing to
+                 // the lower bytes of 0x2000000, so when it reads a word, it will be 0.
+                 applyRubyRoamerPatch();
+             }
+-            StaticPokemon roamer = romEntry.getRoamingPokemon().getFirst();
++            StaticPokemon roamer = romEntry.getRoamingPokemon().get(0);
+             StaticEncounter se = new StaticEncounter();
+             se.setSpecies(roamer.getPokemon(this));
+             se.setLevel(roamer.getLevel(rom, 0));
+             statics.add(se);
+         } else if (romEntry.getRomType() == Gen3Constants.RomType_Sapp) {
+-            StaticPokemon roamer = romEntry.getRoamingPokemon().getFirst();
++            StaticPokemon roamer = romEntry.getRoamingPokemon().get(0);
+             StaticEncounter se = new StaticEncounter();
+             se.setSpecies(roamer.getPokemon(this));
+             se.setLevel(roamer.getLevel(rom, 0));
+             statics.add(se);
+         } else if (romEntry.getRomType() == Gen3Constants.RomType_FRLG && romEntry.hasTweakFile("RoamingPokemonTweak")) {
+-            int firstSpecies = readWord(rom, romEntry.getRoamingPokemon().getFirst().speciesOffsets[0]);
++            int firstSpecies = readWord(rom, romEntry.getRoamingPokemon().get(0).speciesOffsets[0]);
+             if (firstSpecies == 0xFFFF) {
+                 // This means that the IPS patch hasn't been applied yet, since the first species
+                 // ID location is free space.
+@@ -2262,7 +2262,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
+                 statics.add(se);
+             }
+         } else if (romEntry.getRomType() == Gen3Constants.RomType_Em) {
+-            int firstSpecies = readWord(rom, romEntry.getRoamingPokemon().getFirst().speciesOffsets[0]);
++            int firstSpecies = readWord(rom, romEntry.getRoamingPokemon().get(0).speciesOffsets[0]);
+             if (firstSpecies >= pokesInternal.length) {
+                 // Before applying the patch, the first species offset is a pointer with a huge value.
+                 // Thus, this check is a good indicator that the patch needs to be applied.
+@@ -2285,8 +2285,8 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
+ 
+     private void setRoamers(List<StaticEncounter> statics) {
+         if (romEntry.getRomType() == Gen3Constants.RomType_Ruby || romEntry.getRomType() == Gen3Constants.RomType_Sapp) {
+-            StaticEncounter roamerEncounter = statics.getLast();
+-            StaticPokemon roamer = romEntry.getRoamingPokemon().getFirst();
++            StaticEncounter roamerEncounter = statics.get(statics.size() - 1);
++            StaticPokemon roamer = romEntry.getRoamingPokemon().get(0);
+             roamer.setPokemon(this, roamerEncounter.getSpecies());
+             for (int i = 0; i < roamer.levelOffsets.length; i++) {
+                 roamer.setLevel(rom, roamerEncounter.getLevel(), i);
+@@ -2305,7 +2305,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
+             int[] southernIslandOffsets = romEntry.getArrayValue("StaticSouthernIslandOffsets");
+             for (int i = 0; i < romEntry.getRoamingPokemon().size(); i++) {
+                 StaticEncounter southernIslandEncounter = statics.get(southernIslandOffsets[i]);
+-                StaticEncounter roamerEncounter = southernIslandEncounter.getLinkedEncounters().getFirst();
++                StaticEncounter roamerEncounter = southernIslandEncounter.getLinkedEncounters().get(0);
+                 StaticPokemon roamer = romEntry.getRoamingPokemon().get(i);
+                 roamer.setPokemon(this, roamerEncounter.getSpecies());
+                 for (int j = 0; j < roamer.levelOffsets.length; j++) {
+@@ -2671,7 +2671,7 @@ public class Gen3RomHandler extends AbstractGBRomHandler {
+         } else if (found.size() > 1) {
+             return -2; // not unique
+         } else {
+-            return found.getFirst();
++            return found.get(0);
+         }
+     }
+ 
+diff --git a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen4RomHandler.java b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen4RomHandler.java
+index c1daaa2..46fc33d 100644
+--- a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen4RomHandler.java
++++ b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen4RomHandler.java
+@@ -976,7 +976,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 			List<Integer> tailOffsets = RomFunctions.search(arm9, Gen4Constants.hgssStarterCodeSuffix);
+ 			if (tailOffsets.size() == 1) {
+ 				// Found starters
+-				int starterOffset = tailOffsets.getFirst() - 13;
++				int starterOffset = tailOffsets.get(0) - 13;
+ 				int poke1 = readWord(arm9, starterOffset);
+ 				int poke2 = readWord(arm9, starterOffset + 4);
+ 				int poke3 = readWord(arm9, starterOffset + 8);
+@@ -1007,7 +1007,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 			List<Integer> tailOffsets = RomFunctions.search(arm9, Gen4Constants.hgssStarterCodeSuffix);
+ 			if (tailOffsets.size() == 1) {
+ 				// Found starters
+-				int starterOffset = tailOffsets.getFirst() - 13;
++				int starterOffset = tailOffsets.get(0) - 13;
+ 				writeWord(arm9, starterOffset, newStarters.get(0).getNumber());
+ 				writeWord(arm9, starterOffset + 4, newStarters.get(1).getNumber());
+ 				writeWord(arm9, starterOffset + 8, newStarters.get(2).getNumber());
+@@ -1029,7 +1029,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 					List<Integer> rivalOffsets = RomFunctions.search(file, magic);
+ 					if (rivalOffsets.size() == 1) {
+ 						// found, adjust
+-						int baseOffset = rivalOffsets.getFirst();
++						int baseOffset = rivalOffsets.get(0);
+ 						// Replace 152 (chiko) with first starter
+ 						writeWord(file, baseOffset + 8, newStarters.get(0).getNumber());
+ 						int jumpAmount = readLong(file, baseOffset + 13);
+@@ -1328,7 +1328,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+         int starterScriptNumber = romEntry.getIntValue("StarterPokemonScriptOffset");
+         int starterHeldItemOffset = romEntry.getIntValue("StarterPokemonHeldItemOffset");
+         byte[] file = scriptNarc.files.get(starterScriptNumber);
+-        Item item = items.getFirst();
++        Item item = items.get(0);
+         IOFunctions.write2ByteInt(file, starterHeldItemOffset, item == null ? 0 : item.getId());
+     }
+ 
+@@ -1463,7 +1463,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 	}
+ 
+ 	private void readFeebasTileEncounters(List<EncounterArea> encounterAreas, NARCArchive extraEncounterData, byte[] encounterOverlay) {
+-		byte[] feebasData = extraEncounterData.files.getFirst();
++		byte[] feebasData = extraEncounterData.files.get(0);
+ 		EncounterArea area = readExtraEncounterAreaDPPt(feebasData, 0, 1);
+ 		// TODO: make feebas tile encounters work in Japanese DP
+ 		int offset = find(encounterOverlay, Gen4Constants.feebasLevelPrefixDPPt);
+@@ -2039,13 +2039,13 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 
+ 	private void writeFeebasEncounters(Iterator<EncounterArea> areaIterator, NARCArchive extraEncounterData, byte[] encounterOverlay) {
+ 		// Feebas tiles
+-		byte[] feebasData = extraEncounterData.files.getFirst();
++		byte[] feebasData = extraEncounterData.files.get(0);
+ 		EncounterArea feebasArea = areaIterator.next();
+ 		int offset = find(encounterOverlay, Gen4Constants.feebasLevelPrefixDPPt);
+ 		if (offset > 0) {
+ 			offset += Gen4Constants.feebasLevelPrefixDPPt.length() / 2; // because it was a prefix
+-			encounterOverlay[offset] = (byte) feebasArea.getFirst().getMaxLevel();
+-			encounterOverlay[offset + 4] = (byte) feebasArea.getFirst().getLevel();
++			encounterOverlay[offset] = (byte) feebasArea.get(0).getMaxLevel();
++			encounterOverlay[offset + 4] = (byte) feebasArea.get(0).getLevel();
+ 		}
+ 		writeExtraEncountersDPPt(feebasData, 0, feebasArea);
+ 	}
+@@ -2058,8 +2058,8 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 			int offset = find(encounterOverlay, Gen4Constants.honeyTreeLevelPrefixDPPt);
+ 			if (offset > 0) {
+ 				offset += Gen4Constants.honeyTreeLevelPrefixDPPt.length() / 2; // because it was a prefix
+-				int level = honeyTreeArea.getFirst().getLevel();
+-				int maxLevel = honeyTreeArea.getFirst().getMaxLevel();
++				int level = honeyTreeArea.get(0).getLevel();
++				int maxLevel = honeyTreeArea.get(0).getMaxLevel();
+ 
+ 				// The original code makes it impossible for certain min levels
+ 				// from being used in the assembly, but there's also a hardcoded
+@@ -3017,7 +3017,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 	private void fixAbilitySlotValuesForHGSS(List<Trainer> trainers) {
+ 		for (Trainer tr : trainers) {
+ 			if (!tr.getPokemon().isEmpty()) {
+-				TrainerPokemon lastPokemon = tr.getPokemon().getLast();
++				TrainerPokemon lastPokemon = tr.getPokemon().get(tr.getPokemon().size() - 1);
+ 				int lastAbilitySlot = lastPokemon.getAbilitySlot();
+ 				for (int i = 0; i < tr.getPokemon().size(); i++) {
+ 					// HGSS has a nasty bug where if a single Pokemon with an abilitySlot of 2
+@@ -3144,7 +3144,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 		try {
+ 			if (romEntry.getRomType() == Gen4Constants.Type_HGSS) {
+ 				NARCArchive eggMoveNARC = this.readNARC(romEntry.getFile("EggMoves"));
+-				byte[] eggMoveData = eggMoveNARC.files.getFirst();
++				byte[] eggMoveData = eggMoveNARC.files.get(0);
+ 				eggMoves = readEggMoves(eggMoveData, 0);
+ 			} else {
+ 				byte[] fieldOvl = readOverlay(romEntry.getIntValue("FieldOvlNumber"));
+@@ -3193,7 +3193,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 		try {
+ 			if (romEntry.getRomType() == Gen4Constants.Type_HGSS) {
+ 				NARCArchive eggMoveNARC = this.readNARC(romEntry.getFile("EggMoves"));
+-				byte[] eggMoveData = eggMoveNARC.files.getFirst();
++				byte[] eggMoveData = eggMoveNARC.files.get(0);
+ 				writeEggMoves(eggMoves, eggMoveData, 0);
+ 				eggMoveNARC.files.set(0, eggMoveData);
+ 				this.writeNARC(romEntry.getFile("EggMoves"), eggMoveNARC);
+@@ -3609,7 +3609,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 				.distinct()
+ 				.sorted(Comparator.comparingDouble(m -> calculateMoveStrength(m, pk)))
+ 				.toList();
+-		return posMoves.getLast();
++		return posMoves.get(posMoves.size() - 1);
+ 	}
+ 
+ 	private Set<Integer> getCompatibleTutorMoves(Species pk) {
+@@ -3664,7 +3664,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 				applyDiamondPearlRoamerPatch();
+ 			}
+ 		} else if (romEntry.getRomType() == Gen4Constants.Type_Plat || romEntry.getRomType() == Gen4Constants.Type_HGSS) {
+-			int firstSpeciesOffset = romEntry.getRoamingPokemon().getFirst().speciesCodeOffsets[0];
++			int firstSpeciesOffset = romEntry.getRoamingPokemon().get(0).speciesCodeOffsets[0];
+ 			if (arm9.length < firstSpeciesOffset || readWord(arm9, firstSpeciesOffset) == 0) {
+ 				// Confirms the patch hasn't been written yet.
+ 				genericIPSPatch(arm9, "NewRoamerSubroutineTweak");
+@@ -3989,7 +3989,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 			// In HGSS, Headbutt is the last tutor move, but the tutor teaches it
+ 			// to you via a hardcoded script rather than looking at this data
+ 			if (romEntry.getRomType() == Gen4Constants.Type_HGSS) {
+-				setHGSSHeadbuttTutor(moves.getLast());
++				setHGSSHeadbuttTutor(moves.get(moves.size() - 1));
+ 			}
+ 		} catch (IOException e) {
+ 			throw new RomIOException(e);
+@@ -4508,7 +4508,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 		int size = arm9[sizeOffset] & 0xFF;
+ 
+ 		Map<Integer, Integer> progressiveShopValues = readProgressiveShopValues();
+-		List<Item> shopItems = shops.getFirst().getItems();
++		List<Item> shopItems = shops.get(0).getItems();
+ 		if (shopItems.size() != size) {
+ 			offset = repointProgressiveShop(offset, size, shopItems.size(), pointerOffset, sizeOffset);
+ 		}
+@@ -4727,7 +4727,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 	@Override
+ 	public List<String> getTrainerNames() {
+ 		List<String> tnames = new ArrayList<>(getStrings(romEntry.getIntValue("TrainerNamesTextOffset")));
+-		tnames.removeFirst(); // blank one
++		tnames.remove(0); // blank one
+ 		for (int i = 0; i < tnames.size(); i++) {
+ 			if (tnames.get(i).contains("\\and")) {
+ 				tnames.set(i, tnames.get(i).replace("\\and", "&"));
+@@ -5238,7 +5238,7 @@ public class Gen4RomHandler extends AbstractDSRomHandler {
+ 				Species baby = pokes[i];
+ 				while (!baby.getEvolutionsTo().isEmpty()) {
+ 					// Grab the first "to evolution" even if there are multiple
+-					baby = baby.getEvolutionsTo().getFirst().getFrom();
++					baby = baby.getEvolutionsTo().get(0).getFrom();
+ 				}
+ 				writeWord(babyPokes, i * 2, baby.getNumber());
+ 			}
+diff --git a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen5RomHandler.java b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen5RomHandler.java
+index 0d4a163..bcc7307 100644
+--- a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen5RomHandler.java
++++ b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen5RomHandler.java
+@@ -1119,7 +1119,7 @@ public class Gen5RomHandler extends AbstractDSRomHandler {
+     private void loadWildMapNames() {
+         try {
+             wildMapNames = new HashMap<>();
+-            byte[] mapHeaderData = this.readNARC(romEntry.getFile("MapTableFile")).files.getFirst();
++            byte[] mapHeaderData = this.readNARC(romEntry.getFile("MapTableFile")).files.get(0);
+             int numMapHeaders = mapHeaderData.length / 48;
+             List<String> allMapNames = getStrings(false, romEntry.getIntValue("MapNamesTextOffset"));
+             for (int map = 0; map < numMapHeaders; map++) {
+@@ -1467,7 +1467,7 @@ public class Gen5RomHandler extends AbstractDSRomHandler {
+     public void makeDoubleBattleModePossible() {
+         try {
+             NARCArchive trainerTextBoxes = readNARC(romEntry.getFile("TrainerTextBoxes"));
+-            byte[] data = trainerTextBoxes.files.getFirst();
++            byte[] data = trainerTextBoxes.files.get(0);
+             for (int i = 0; i < data.length; i += 4) {
+                 int trainerIndex = readWord(data, i);
+                 if (originalDoubleTrainers.contains(trainerIndex)) {
+@@ -1935,7 +1935,7 @@ public class Gen5RomHandler extends AbstractDSRomHandler {
+         // Roaming encounters
+         if (!romEntry.getRoamingPokemon().isEmpty()) {
+             try {
+-                int firstSpeciesOffset = romEntry.getRoamingPokemon().getFirst().speciesOverlayOffsets[0];
++                int firstSpeciesOffset = romEntry.getRoamingPokemon().get(0).speciesOverlayOffsets[0];
+                 byte[] overlay = readOverlay(romEntry.getIntValue("RoamerOvlNumber"));
+                 if (readWord(overlay, firstSpeciesOffset) > pokes.length) {
+                     // In the original code, this is "mov r0, #0x2", which read as a word is
+@@ -2995,7 +2995,7 @@ public class Gen5RomHandler extends AbstractDSRomHandler {
+     @Override
+     public List<String> getTrainerNames() {
+         List<String> tnames = getStrings(false, romEntry.getIntValue("TrainerNamesTextOffset"));
+-        tnames.removeFirst(); // blank one
++        tnames.remove(0); // blank one
+         if (romEntry.getRomType() == Gen5Constants.Type_BW2) {
+             List<String> pwtNames = getStrings(false, romEntry.getIntValue("PWTTrainerNamesTextOffset"));
+             tnames.addAll(pwtNames);
+@@ -3038,7 +3038,7 @@ public class Gen5RomHandler extends AbstractDSRomHandler {
+             List<String> pwtNames = getStrings(false, romEntry.getIntValue("PWTTrainerNamesTextOffset"));
+             List<String> newTNames = new ArrayList<>();
+             List<String> newPWTNames = new ArrayList<>();
+-            newTNames.addFirst(tnames.getFirst()); // the 0-entry, preserve it
++            newTNames.add(0, tnames.get(0)); // the 0-entry, preserve it
+             for (int i = 1; i < tnames.size() + pwtNames.size(); i++) {
+                 if (i < tnames.size()) {
+                     newTNames.add(trainerNames.get(i - 1));
+@@ -3050,7 +3050,7 @@ public class Gen5RomHandler extends AbstractDSRomHandler {
+             setStrings(false, romEntry.getIntValue("PWTTrainerNamesTextOffset"), newPWTNames);
+         } else {
+             List<String> newTNames = new ArrayList<>(trainerNames);
+-            newTNames.addFirst(tnames.getFirst()); // the 0-entry, preserve it
++            newTNames.add(0, tnames.get(0)); // the 0-entry, preserve it
+             setStrings(false, romEntry.getIntValue("TrainerNamesTextOffset"), newTNames);
+         }
+     }
+@@ -3555,7 +3555,7 @@ public class Gen5RomHandler extends AbstractDSRomHandler {
+                 Species baby = pokes[i];
+                 while (!baby.getEvolutionsTo().isEmpty()) {
+                     // Grab the first "to evolution" even if there are multiple
+-                    baby = baby.getEvolutionsTo().getFirst().getFrom();
++                    baby = baby.getEvolutionsTo().get(0).getFrom();
+                 }
+                 writeWord(babyNARC.files.get(i), 0, baby.getNumber());
+             }
+diff --git a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen6RomHandler.java b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen6RomHandler.java
+index e5b6ccb..2d34fe3 100644
+--- a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen6RomHandler.java
++++ b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen6RomHandler.java
+@@ -466,7 +466,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+             for (int i = 1; i <= moveCount; i++) {
+                 byte[] moveData;
+                 if (romEntry.getRomType() == Gen6Constants.Type_ORAS) {
+-                    moveData = Mini.UnpackMini(moveGarc.files.getFirst().get(0), "WD")[i];
++                    moveData = Mini.UnpackMini(moveGarc.files.get(0).get(0), "WD")[i];
+                 } else {
+                     moveData = moveGarc.files.get(i).get(0);
+                 }
+@@ -786,7 +786,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+         // Now that we've handled the hardcoded Shedinja evolution, delete it so that
+         // we do *not* handle it in WriteEvolutions
+         nincada.getEvolutionsFrom().remove(1);
+-        extraEvolution.getEvolutionsTo().removeFirst();
++        extraEvolution.getEvolutionsTo().remove(0);
+         writeFile(romEntry.getFile("Evolution"), evolutionCRO);
+     }
+ 
+@@ -800,7 +800,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+             return;
+         }
+ 
+-        Evolution prismScaleEvo = feebas.getEvolutionsFrom().getFirst();
++        Evolution prismScaleEvo = feebas.getEvolutionsFrom().get(0);
+         Species feebasEvolution = prismScaleEvo.getTo();
+         int beautyNeededToEvolve = 170;
+         Evolution beautyEvolution = new Evolution(feebas, feebasEvolution,
+@@ -815,7 +815,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+         int moveCount = Gen6Constants.getMoveCount(romEntry.getRomType());
+         byte[][] miniArchive = new byte[0][0];
+         if (romEntry.getRomType() == Gen6Constants.Type_ORAS) {
+-            miniArchive = Mini.UnpackMini(moveGarc.files.getFirst().get(0), "WD");
++            miniArchive = Mini.UnpackMini(moveGarc.files.get(0).get(0), "WD");
+         }
+         for (int i = 1; i <= moveCount; i++) {
+             byte[] data;
+@@ -1572,7 +1572,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+         String encountersFile = romEntry.getFile("WildPokemon");
+         GARCArchive encounterGarc = readGARC(encountersFile, false);
+         Iterator<EncounterArea> areaIterator = encounterAreas.iterator();
+-        byte[] decStorage = encounterGarc.files.getLast().get(0);
++        byte[] decStorage = encounterGarc.files.get(encounterGarc.files.size() - 1).get(0);
+         for (int i = 0; i < encounterGarc.files.size() - 2; i++) {
+             byte[] b = encounterGarc.files.get(i).get(0);
+             int offset = IOFunctions.readFullInt(b, 0x10) + 0xE;
+@@ -2420,7 +2420,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+         }
+         for (ThreeDSLinkedEncounter le : romEntry.getLinkedEncounters()) {
+             StaticEncounter baseEncounter = statics.get(le.getBase());
+-            statics.set(le.getLinked(), baseEncounter.getLinkedEncounters().getFirst());
++            statics.set(le.getLinked(), baseEncounter.getLinkedEncounters().get(0));
+         }
+     }
+ 
+@@ -2923,7 +2923,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+         } else if (found.size() > 1) {
+             return -2; // not unique
+         } else {
+-            return found.getFirst();
++            return found.get(0);
+         }
+     }
+ 
+@@ -3247,7 +3247,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+     @Override
+     public List<String> getTrainerNames() {
+         List<String> tnames = getStrings(false, romEntry.getIntValue("TrainerNamesTextOffset"));
+-        tnames.removeFirst(); // blank one
++        tnames.remove(0); // blank one
+ 
+         return tnames;
+     }
+@@ -3261,7 +3261,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+     public void setTrainerNames(List<String> trainerNames) {
+         List<String> tnames = getStrings(false, romEntry.getIntValue("TrainerNamesTextOffset"));
+         List<String> newTNames = new ArrayList<>(trainerNames);
+-        newTNames.addFirst(tnames.getFirst()); // the 0-entry, preserve it
++        newTNames.add(0, tnames.get(0)); // the 0-entry, preserve it
+         setStrings(false, romEntry.getIntValue("TrainerNamesTextOffset"), newTNames);
+         try {
+             writeStringsForAllLanguages(newTNames, romEntry.getIntValue("TrainerNamesTextOffset"));
+@@ -3750,7 +3750,7 @@ public class Gen6RomHandler extends Abstract3DSRomHandler {
+                 Species baby = pokes[i];
+                 while (!baby.getEvolutionsTo().isEmpty()) {
+                     // Grab the first "to evolution" even if there are multiple
+-                    baby = baby.getEvolutionsTo().getFirst().getFrom();
++                    baby = baby.getEvolutionsTo().get(0).getFrom();
+                 }
+                 writeWord(babyFile, 0, baby.getNumber());
+                 writeWord(masterFile, i * 2, baby.getNumber());
+diff --git a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen7RomHandler.java b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen7RomHandler.java
+index c3e2ea8..c1e3c08 100644
+--- a/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen7RomHandler.java
++++ b/romio/src/main/java/com/uprfvx/romio/romhandlers/Gen7RomHandler.java
+@@ -533,7 +533,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+             int moveCount = Gen7Constants.getMoveCount(romEntry.getRomType());
+             moves = new Move[moveCount + 1];
+             List<String> moveNames = getStrings(false, romEntry.getIntValue("MoveNamesTextOffset"));
+-            byte[][] movesData = Mini.UnpackMini(moveGarc.files.getFirst().get(0), "WD");
++            byte[][] movesData = Mini.UnpackMini(moveGarc.files.get(0).get(0), "WD");
+             for (int i = 1; i <= moveCount; i++) {
+                 byte[] moveData = movesData[i];
+                 moves[i] = new Move();
+@@ -892,14 +892,14 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+         // Now that we've handled the hardcoded Shedinja evolution, delete it so that
+         // we do *not* handle it in WriteEvolutions
+         nincada.getEvolutionsFrom().remove(1);
+-        extraEvolution.getEvolutionsTo().removeFirst();
++        extraEvolution.getEvolutionsTo().remove(0);
+     }
+ 
+     @Override
+     public void saveMoves() {
+         List<String> moveNames = getStrings(false, romEntry.getIntValue("MoveNamesTextOffset"));
+         int moveCount = Gen7Constants.getMoveCount(romEntry.getRomType());
+-        byte[][] movesData = Mini.UnpackMini(moveGarc.files.getFirst().get(0), "WD");
++        byte[][] movesData = Mini.UnpackMini(moveGarc.files.get(0).get(0), "WD");
+         for (int i = 1; i <= moveCount; i++) {
+             byte[] moveData = movesData[i];
+             String newMoveName = moves[i].name;
+@@ -1063,7 +1063,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+         List<StaticEncounter> starters = new ArrayList<>();
+         try {
+             GARCArchive staticGarc = readGARC(romEntry.getFile("StaticPokemon"), true);
+-            byte[] giftsFile = staticGarc.files.getFirst().get(0);
++            byte[] giftsFile = staticGarc.files.get(0).get(0);
+             for (int i = 0; i < 3; i++) {
+                 int offset = i * 0x14;
+                 StaticEncounter se = new StaticEncounter();
+@@ -1094,7 +1094,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+         // If you want to reimplement it, do so outside this method.
+         try {
+             GARCArchive staticGarc = readGARC(romEntry.getFile("StaticPokemon"), true);
+-            byte[] giftsFile = staticGarc.files.getFirst().get(0);
++            byte[] giftsFile = staticGarc.files.get(0).get(0);
+             for (int i = 0; i < 3; i++) {
+                 int offset = i * 0x14;
+                 Species starter = newStarters.get(i);
+@@ -1184,7 +1184,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+         List<Item> starterHeldItems = new ArrayList<>();
+         try {
+             GARCArchive staticGarc = readGARC(romEntry.getFile("StaticPokemon"), true);
+-            byte[] giftsFile = staticGarc.files.getFirst().get(0);
++            byte[] giftsFile = staticGarc.files.get(0).get(0);
+             for (int i = 0; i < 3; i++) {
+                 int offset = i * 0x14;
+                 int id = IOFunctions.read2ByteInt(giftsFile, offset + 8);
+@@ -1200,7 +1200,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+     public void setStarterHeldItems(List<Item> items) {
+         try {
+             GARCArchive staticGarc = readGARC(romEntry.getFile("StaticPokemon"), true);
+-            byte[] giftsFile = staticGarc.files.getFirst().get(0);
++            byte[] giftsFile = staticGarc.files.get(0).get(0);
+             for (int i = 0; i < 3; i++) {
+                 int offset = i * 0x14;
+                 Item item = items.get(i);
+@@ -1394,7 +1394,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+ 
+     private void writeEncounterTable(byte[] encounterTable, int offset, List<Encounter> encounters) {
+         Iterator<Encounter> encounterIterator = encounters.iterator();
+-        Encounter firstEncounter = encounters.getFirst();
++        Encounter firstEncounter = encounters.get(0);
+         encounterTable[offset] = (byte) firstEncounter.getLevel();
+         encounterTable[offset + 1] = (byte) firstEncounter.getMaxLevel();
+         int numberOfEncounterSlots = encounters.size() / 8;
+@@ -1622,7 +1622,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+                     tpk.setLevel(level);
+                     if (romEntry.getRomType() == Gen7Constants.Type_USUM) {
+                         if (i == 78) {
+-                            if (poke == 3 && tpk.getLevel() == 16 && tr.getPokemon().getFirst().getLevel() == 16) {
++                            if (poke == 3 && tpk.getLevel() == 16 && tr.getPokemon().get(0).getLevel() == 16) {
+                                 tpk.setLevel(14);
+                             }
+                         }
+@@ -2113,7 +2113,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+             skipIndices.add(Gen7Constants.route1PikipekStaticIndex);
+ 
+             // Gifts, start at 3 to skip the starters
+-            byte[] giftsFile = staticGarc.files.getFirst().get(0);
++            byte[] giftsFile = staticGarc.files.get(0).get(0);
+             int numberOfGifts = giftsFile.length / 0x14;
+             for (int i = 3; i < numberOfGifts; i++) {
+                 int offset = i * 0x14;
+@@ -2259,7 +2259,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+             Iterator<StaticEncounter> staticIter = staticPokemon.iterator();
+ 
+             // Gifts, start at 3 to skip the starters
+-            byte[] giftsFile = staticGarc.files.getFirst().get(0);
++            byte[] giftsFile = staticGarc.files.get(0).get(0);
+             int numberOfGifts = giftsFile.length / 0x14;
+             for (int i = 3; i < numberOfGifts; i++) {
+                 int offset = i * 0x14;
+@@ -2319,7 +2319,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+         }
+         for (ThreeDSLinkedEncounter le : romEntry.getLinkedEncounters()) {
+             StaticEncounter baseEncounter = statics.get(le.getBase());
+-            statics.set(le.getLinked(), baseEncounter.getLinkedEncounters().getFirst());
++            statics.set(le.getLinked(), baseEncounter.getLinkedEncounters().get(0));
+         }
+     }
+ 
+@@ -2590,7 +2590,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+         } else if (found.size() > 1) {
+             return -2; // not unique
+         } else {
+-            return found.getFirst();
++            return found.get(0);
+         }
+     }
+ 
+@@ -2919,7 +2919,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+ 
+         Evolution rockruffBaseToDusk = new Evolution(rockruffBase, lycanrocDusk, EvolutionType.LEVEL_DUSK, 25);
+         // inserts it at the start to give priority over LEVEL_NIGHT evolution
+-        rockruffBase.getEvolutionsFrom().addFirst(rockruffBaseToDusk);
++        rockruffBase.getEvolutionsFrom().add(0, rockruffBaseToDusk);
+         lycanrocDusk.getEvolutionsTo().add(rockruffBaseToDusk);
+ 
+         Evolution rockruffOTToMidday = new Evolution(rockruffOT, lycanrocMidday, EvolutionType.LEVEL_DAY, 25);
+@@ -2960,7 +2960,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+     @Override
+     public List<String> getTrainerNames() {
+         List<String> tnames = getStrings(false, romEntry.getIntValue("TrainerNamesTextOffset"));
+-        tnames.removeFirst(); // blank one
++        tnames.remove(0); // blank one
+ 
+         return tnames;
+     }
+@@ -2974,7 +2974,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+     public void setTrainerNames(List<String> trainerNames) {
+         List<String> tnames = getStrings(false, romEntry.getIntValue("TrainerNamesTextOffset"));
+         List<String> newTNames = new ArrayList<>(trainerNames);
+-        newTNames.addFirst(tnames.getFirst()); // the 0-entry, preserve it
++        newTNames.add(0, tnames.get(0)); // the 0-entry, preserve it
+         setStrings(false, romEntry.getIntValue("TrainerNamesTextOffset"), newTNames);
+         try {
+             writeStringsForAllLanguages(newTNames, romEntry.getIntValue("TrainerNamesTextOffset"));
+@@ -3360,7 +3360,7 @@ public class Gen7RomHandler extends Abstract3DSRomHandler {
+                 Species baby = pokes[i];
+                 while (!baby.getEvolutionsTo().isEmpty()) {
+                     // Grab the first "to evolution" even if there are multiple
+-                    baby = baby.getEvolutionsTo().getFirst().getFrom();
++                    baby = baby.getEvolutionsTo().get(0).getFrom();
+                 }
+                 writeWord(babyFile, 0, baby.getNumber());
+                 writeWord(masterFile, i * 2, baby.getNumber());

@@ -24,12 +24,6 @@ jobs:
           node-version: '20'
           cache: npm
       - run: npm ci
-      - name: Download UPR JAR
-        run: |
-          curl -L https://github.com/Ajarmar/universal-pokemon-randomizer-zx/releases/download/v4.6.1/PokeRandoZX-v4_6_1.zip -o upr.zip
-          unzip upr.zip "*.jar" -d upr_extracted
-          mkdir -p public
-          cp upr_extracted/PokeRandoZX.jar public/randomizer.jar
       - name: Build
         run: npm run build:gh-pages
       - uses: actions/upload-pages-artifact@v3

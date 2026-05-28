@@ -3,6 +3,7 @@ import { Dices, Download } from "lucide-react";
 import type { UPRSettings } from "@/types/settings";
 import { defaultSettings } from "@/types/settings";
 import { encodeSettings } from "@/lib/settingsEncoder";
+import { cheerpjRandomize } from "@/lib/cheerpjRandomize";
 import type { RomProfile } from "@/lib/romDetection";
 import { detectRomProfile, sanitizeSettingsForRom } from "@/lib/romDetection";
 import { RomUpload } from "@/components/RomUpload";
@@ -79,7 +80,6 @@ export default function App() {
     try {
       const effectiveSettings = sanitizeSettingsForRom(settings, romProfile);
       const rnqs = encodeSettings(effectiveSettings);
-      const { cheerpjRandomize } = await import("@/lib/cheerpjRandomize");
       const { romBlob, filename, log } = await cheerpjRandomize(rom, rnqs, JAR_PATH);
 
       if (log) setLog(log);

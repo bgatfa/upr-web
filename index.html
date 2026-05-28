@@ -7,6 +7,21 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Universal Pokemon Randomizer Web</title>
+    <script>
+      // Stale-deploy recovery: GitHub Pages caches index.html (max-age=600) and
+      // allows no custom headers, so a cached page can reference a hashed asset
+      // that a newer deploy removed. If a hashed asset script 404s, reload once
+      // to fetch the current index.html and assets.
+      addEventListener("error", function (e) {
+        var t = e.target;
+        if (t && t.tagName === "SCRIPT" && /\/assets\/.*\.js/.test(t.src || "")) {
+          if (!sessionStorage.getItem("uprStaleReload")) {
+            sessionStorage.setItem("uprStaleReload", "1");
+            location.reload();
+          }
+        }
+      }, true);
+    </script>
     <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
   </head>
   <body>

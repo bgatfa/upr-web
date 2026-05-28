@@ -44,6 +44,35 @@ export async function cheerpjRandomize(
     throw new Error(`CheerpJ file staging failed: ${String(error)}`);
   }
 
+  // Guard + diagnostic: CheerpJ has mishandled large binary files staged via
+  // cheerpOSAddStringFile. Read the ROM back from the virtual filesystem and
+  // compare, so a staging corruption surfaces clearly here instead of as a
+  // cryptic "No valid pointer" failure deep inside the randomizer's ROM loader.
+  try {
+    const staged = new Uint8Array(await (await cjFileBlob(inputPath)).arrayBuffer());
+    if (staged.length !== romBytes.length) {
+      throw new Error(
+        `CheerpJ-staged ROM is ${staged.length} bytes but the upload is ${romBytes.length} bytes — ` +
+        `the virtual filesystem corrupted the file.`
+      );
+    }
+    let diff = -1;
+    for (let i = 0; i < romBytes.length; i++) {
+      if (staged[i] !== romBytes[i]) { diff = i; break; }
+    }
+    if (diff !== -1) {
+      throw new Error(
+        `CheerpJ-staged ROM differs from the upload at byte 0x${diff.toString(16)} ` +
+        `(read ${staged[diff]}, expected ${romBytes[diff]}) — the virtual filesystem corrupted the file.`
+      );
+    }
+    console.log(`[upr] ROM staging verified: ${staged.length} bytes intact`);
+  } catch (error) {
+    // Definitive corruption is worth failing on; an inability to verify is not.
+    if (error instanceof Error && error.message.startsWith("CheerpJ-staged ROM")) throw error;
+    console.warn(`[upr] could not verify staged ROM (continuing): ${String(error)}`);
+  }
+
   // CheerpJ routes the JVM's System.out / System.err to the browser console.
   // Capture it so the randomizer's output — and, on failure, its error/stack
   // trace — is surfaced instead of being silently lost.

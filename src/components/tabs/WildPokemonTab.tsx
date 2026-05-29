@@ -200,25 +200,28 @@ export function WildPokemonTab({ s, set, rom }: Props) {
               )}
             </div>
 
-            <div>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.wildLevelsModified}
-                  onChange={e => set("wildLevelsModified", e.target.checked)} />
-                Modify Wild Levels<Tooltip text={tooltips.wildLevelsModified} />
-              </span>
-              {s.wildLevelsModified && (
-                <div className="sub-row items-center">
-                  <input type="range" min={-100} max={155} className="w-36"
-                    value={s.wildLevelModifier}
-                    onChange={e => set("wildLevelModifier", Number(e.target.value))} />
-                  <span className="text-sm text-gray-700 w-14 font-mono">
-                    {s.wildLevelModifier >= 0 ? `+${s.wildLevelModifier}` : s.wildLevelModifier}%
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
         )}
+
+        {/* Level Modifier — independent of wild randomization (engine applies it
+            whenever wildLevelsModified is set, even with randomization off) */}
+        <div className={s.randomizeWildPokemon ? "" : "mt-2"}>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.wildLevelsModified}
+              onChange={e => set("wildLevelsModified", e.target.checked)} />
+            Modify Wild Levels<Tooltip text={tooltips.wildLevelsModified} />
+          </span>
+          {s.wildLevelsModified && (
+            <div className="sub-row items-center">
+              <input type="range" min={-100} max={155} className="w-36"
+                value={s.wildLevelModifier}
+                onChange={e => set("wildLevelModifier", Number(e.target.value))} />
+              <span className="text-sm text-gray-700 w-14 font-mono">
+                {s.wildLevelModifier >= 0 ? `+${s.wildLevelModifier}` : s.wildLevelModifier}%
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Static Pokemon */}
@@ -264,25 +267,28 @@ export function WildPokemonTab({ s, set, rom }: Props) {
               </span>
             </div>
 
-            <div>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.staticLevelModified}
-                  onChange={e => set("staticLevelModified", e.target.checked)} />
-                Modify Static Levels<Tooltip text={tooltips.staticLevelModified} />
-              </span>
-              {s.staticLevelModified && (
-                <div className="sub-row items-center">
-                  <input type="range" min={-100} max={155} className="w-36"
-                    value={s.staticLevelModifier}
-                    onChange={e => set("staticLevelModifier", Number(e.target.value))} />
-                  <span className="text-sm text-gray-700 w-14 font-mono">
-                    {s.staticLevelModifier >= 0 ? `+${s.staticLevelModifier}` : s.staticLevelModifier}%
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
         )}
+
+        {/* Level Modifier — independent of static randomization; engine gates only
+            on the ROM's canChangeStaticPokemon */}
+        <div className="mt-2">
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.staticLevelModified} disabled={!canChangeStaticPokemon}
+              onChange={e => set("staticLevelModified", e.target.checked)} />
+            Modify Static Levels<Tooltip text={tooltips.staticLevelModified} />
+          </span>
+          {s.staticLevelModified && (
+            <div className="sub-row items-center">
+              <input type="range" min={-100} max={155} className="w-36"
+                value={s.staticLevelModifier}
+                onChange={e => set("staticLevelModifier", Number(e.target.value))} />
+              <span className="text-sm text-gray-700 w-14 font-mono">
+                {s.staticLevelModifier >= 0 ? `+${s.staticLevelModifier}` : s.staticLevelModifier}%
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
     </div>

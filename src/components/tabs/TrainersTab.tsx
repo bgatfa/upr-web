@@ -113,6 +113,27 @@ export function TrainersTab({ s, set, rom }: Props) {
         )}
       </div>
 
+      {/* Level Modifier — independent of trainer randomization (engine applies it
+          whenever trainersLevelModified is set, even when trainers are Unchanged) */}
+      <div className="panel">
+        <span className="panel-title">Level Modifier</span>
+        <span className="checkbox-label">
+          <input type="checkbox" checked={s.trainersLevelModified}
+            onChange={e => set("trainersLevelModified", e.target.checked)} />
+          Modify Trainer Levels<Tooltip text={tooltips.trainersLevelModified} />
+        </span>
+        {s.trainersLevelModified && (
+          <div className="sub-row items-center">
+            <input type="range" min={-100} max={155} className="w-36"
+              value={s.trainersLevelModifier}
+              onChange={e => set("trainersLevelModifier", Number(e.target.value))} />
+            <span className="text-sm text-gray-700 w-14 font-mono">
+              {s.trainersLevelModifier >= 0 ? `+${s.trainersLevelModifier}` : s.trainersLevelModifier}%
+            </span>
+          </div>
+        )}
+      </div>
+
       {randomizing && (
         <>
           {/* Type Diversity per trainer tier (FVX) */}
@@ -226,25 +247,6 @@ export function TrainersTab({ s, set, rom }: Props) {
                   onChange={e => set("trainersEvolutionLevelModifier", Number(e.target.value))} />
                 <span className="text-sm text-gray-700 w-14 font-mono">
                   {s.trainersEvolutionLevelModifier >= 0 ? `+${s.trainersEvolutionLevelModifier}` : s.trainersEvolutionLevelModifier}%
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="panel">
-            <span className="panel-title">Level Modifier</span>
-            <span className="checkbox-label">
-              <input type="checkbox" checked={s.trainersLevelModified}
-                onChange={e => set("trainersLevelModified", e.target.checked)} />
-              Modify Trainer Levels<Tooltip text={tooltips.trainersLevelModified} />
-            </span>
-            {s.trainersLevelModified && (
-              <div className="sub-row items-center">
-                <input type="range" min={-100} max={155} className="w-36"
-                  value={s.trainersLevelModifier}
-                  onChange={e => set("trainersLevelModifier", Number(e.target.value))} />
-                <span className="text-sm text-gray-700 w-14 font-mono">
-                  {s.trainersLevelModifier >= 0 ? `+${s.trainersLevelModifier}` : s.trainersLevelModifier}%
                 </span>
               </div>
             )}

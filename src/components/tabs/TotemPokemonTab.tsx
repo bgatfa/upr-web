@@ -29,7 +29,6 @@ const AURA_MODS: { value: AuraMod; label: string }[] = [
 
 export function TotemPokemonTab({ s, set, rom }: Props) {
   const hasTotemPokemon = rom?.hasTotemPokemon ?? true;
-  const randomizingTotems = s.totemPokemonMod !== "UNCHANGED" || s.allyPokemonMod !== "UNCHANGED";
 
   return (
     <div className="flex flex-col gap-0">
@@ -118,7 +117,7 @@ export function TotemPokemonTab({ s, set, rom }: Props) {
           <span className="checkbox-label">
             <input
               type="checkbox"
-              disabled={!hasTotemPokemon || !randomizingTotems}
+              disabled={!hasTotemPokemon}
               checked={s.totemLevelsModified}
               onChange={(e) => set("totemLevelsModified", e.target.checked)}
             />

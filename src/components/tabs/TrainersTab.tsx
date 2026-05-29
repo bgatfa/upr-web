@@ -134,6 +134,149 @@ export function TrainersTab({ s, set, rom }: Props) {
         )}
       </div>
 
+      {/* Additional Pokemon — engine adds them to teams regardless of trainersMod */}
+      <div className="panel">
+        <span className="panel-title">Additional Pokemon per Trainer</span>
+        <div className="flex flex-wrap gap-4">
+          {[
+            { label: "Boss (Rival / E4 / Champion)", key: "additionalBossTrainerPokemon", tip: tooltips.additionalBossTrainerPokemon },
+            { label: "Important Trainer", key: "additionalImportantTrainerPokemon", tip: tooltips.additionalImportantTrainerPokemon },
+            { label: "Regular Trainer", key: "additionalRegularTrainerPokemon", tip: tooltips.additionalRegularTrainerPokemon },
+          ].map(({ label, key, tip }) => (
+            <div key={key} className="flex items-center gap-1.5">
+              <span className="text-sm text-gray-700">{label}:<Tooltip text={tip} /></span>
+              <select className="select-field" value={(s as never)[key]}
+                onChange={e => set(key as keyof UPRSettings, Number(e.target.value) as never)}>
+                {[0, 1, 2, 3].map(n => <option key={n} value={n}>+{n}</option>)}
+              </select>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Battle Style — engine applies it whenever the style is changed (FVX) */}
+      <div className="panel">
+        <span className="panel-title">Battle Style<Tooltip text={tooltips.battleStyleMod} /></span>
+        <div className="field-row mb-1">
+          {BATTLE_STYLE_MODS.map(({ value, label }) => (
+            <span key={value} className="radio-label">
+              <input type="radio" name="battleStyleMod" checked={s.battleStyleModification === value}
+                onChange={() => set("battleStyleModification", value)} />
+              {label}
+            </span>
+          ))}
+        </div>
+        {s.battleStyleModification === "SINGLE_STYLE" && (
+          <div className="sub-row">
+            <span className="text-xs text-gray-500">Style:<Tooltip text={tooltips.battleStyleType} /></span>
+            {BATTLE_STYLE_TYPES.map(({ value, label }) => (
+              <span key={value} className="radio-label">
+                <input type="radio" name="battleStyleType" checked={s.battleStyleType === value}
+                  onChange={() => set("battleStyleType", value)} />
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Better movesets — engine applies them on original teams regardless of trainersMod */}
+      <div className="panel">
+        <span className="panel-title">Better Movesets by Tier<Tooltip text={tooltips.betterTrainerMovesetsTier} /></span>
+        <div className="field-row">
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.betterBossTrainerMovesets}
+              onChange={e => set("betterBossTrainerMovesets", e.target.checked)} />
+            Boss Trainers
+          </span>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.betterImportantTrainerMovesets}
+              onChange={e => set("betterImportantTrainerMovesets", e.target.checked)} />
+            Important Trainers
+          </span>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.betterRegularTrainerMovesets}
+              onChange={e => set("betterRegularTrainerMovesets", e.target.checked)} />
+            Regular Trainers
+          </span>
+        </div>
+      </div>
+
+      {/* Evolution Behavior — engine evolves original teams by level when trainers are Unchanged */}
+      <div className="panel">
+        <span className="panel-title">Evolution Behavior</span>
+        <div className="field-row">
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.trainersEvolveTheirPokemon}
+              onChange={e => set("trainersEvolveTheirPokemon", e.target.checked)} />
+            Evolve Trainer Pokemon by Expected Level<Tooltip text={tooltips.trainersEvolveTheirPokemon} />
+          </span>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.banPrematureEvos}
+              onChange={e => set("banPrematureEvos", e.target.checked)} />
+            Ban Premature Evolutions<Tooltip text={tooltips.banPrematureEvos} />
+          </span>
+        </div>
+        {s.trainersEvolveTheirPokemon && (
+          <div className="sub-row items-center">
+            <span className="text-xs text-gray-500">Evolution level modifier:<Tooltip text={tooltips.trainersEvolutionLevelModifier} /></span>
+            <input type="range" min={-100} max={155} className="w-36"
+              value={s.trainersEvolutionLevelModifier}
+              onChange={e => set("trainersEvolutionLevelModifier", Number(e.target.value))} />
+            <span className="text-sm text-gray-700 w-14 font-mono">
+              {s.trainersEvolutionLevelModifier >= 0 ? `+${s.trainersEvolutionLevelModifier}` : s.trainersEvolutionLevelModifier}%
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Held Items — engine randomizes them on original teams regardless of trainersMod */}
+      <div className="panel">
+        <span className="panel-title">Held Items</span>
+        <div className="field-row mb-1">
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.randomizeHeldItemsForBossTrainerPokemon}
+              onChange={e => set("randomizeHeldItemsForBossTrainerPokemon", e.target.checked)} />
+            Boss Trainers<Tooltip text={tooltips.randomizeHeldItemsForBossTrainerPokemon} />
+          </span>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.randomizeHeldItemsForImportantTrainerPokemon}
+              onChange={e => set("randomizeHeldItemsForImportantTrainerPokemon", e.target.checked)} />
+            Important Trainers<Tooltip text={tooltips.randomizeHeldItemsForImportantTrainerPokemon} />
+          </span>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.randomizeHeldItemsForRegularTrainerPokemon}
+              onChange={e => set("randomizeHeldItemsForRegularTrainerPokemon", e.target.checked)} />
+            Regular Trainers<Tooltip text={tooltips.randomizeHeldItemsForRegularTrainerPokemon} />
+          </span>
+        </div>
+
+        {(s.randomizeHeldItemsForBossTrainerPokemon ||
+          s.randomizeHeldItemsForImportantTrainerPokemon ||
+          s.randomizeHeldItemsForRegularTrainerPokemon) && (
+          <div className="sub-options">
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.consumableItemsOnlyForTrainerPokemon}
+                  onChange={e => set("consumableItemsOnlyForTrainerPokemon", e.target.checked)} />
+                Consumable Items Only<Tooltip text={tooltips.consumableItemsOnlyForTrainerPokemon} />
+              </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.sensibleItemsOnlyForTrainerPokemon}
+                  onChange={e => set("sensibleItemsOnlyForTrainerPokemon", e.target.checked)} />
+                Sensible Items Only<Tooltip text={tooltips.sensibleItemsOnlyForTrainerPokemon} />
+              </span>
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.highestLevelOnlyGetsItemsForTrainerPokemon}
+                  onChange={e => set("highestLevelOnlyGetsItemsForTrainerPokemon", e.target.checked)} />
+                Highest Level Only Gets Items<Tooltip text={tooltips.highestLevelOnlyGetsItemsForTrainerPokemon} />
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Options below are randomization constraints / only consumed when trainers are randomized */}
       {randomizing && (
         <>
           {/* Type Diversity per trainer tier (FVX) */}
@@ -156,145 +299,6 @@ export function TrainersTab({ s, set, rom }: Props) {
                 Regular Trainers
               </span>
             </div>
-          </div>
-
-          {/* Better movesets per trainer tier (FVX) */}
-          <div className="panel">
-            <span className="panel-title">Better Movesets by Tier<Tooltip text={tooltips.betterTrainerMovesetsTier} /></span>
-            <div className="field-row">
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.betterBossTrainerMovesets}
-                  onChange={e => set("betterBossTrainerMovesets", e.target.checked)} />
-                Boss Trainers
-              </span>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.betterImportantTrainerMovesets}
-                  onChange={e => set("betterImportantTrainerMovesets", e.target.checked)} />
-                Important Trainers
-              </span>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.betterRegularTrainerMovesets}
-                  onChange={e => set("betterRegularTrainerMovesets", e.target.checked)} />
-                Regular Trainers
-              </span>
-            </div>
-          </div>
-
-          {/* Battle Style (FVX replacement for Double Battle Mode) */}
-          <div className="panel">
-            <span className="panel-title">Battle Style<Tooltip text={tooltips.battleStyleMod} /></span>
-            <div className="field-row mb-1">
-              {BATTLE_STYLE_MODS.map(({ value, label }) => (
-                <span key={value} className="radio-label">
-                  <input type="radio" name="battleStyleMod" checked={s.battleStyleModification === value}
-                    onChange={() => set("battleStyleModification", value)} />
-                  {label}
-                </span>
-              ))}
-            </div>
-            {s.battleStyleModification === "SINGLE_STYLE" && (
-              <div className="sub-row">
-                <span className="text-xs text-gray-500">Style:<Tooltip text={tooltips.battleStyleType} /></span>
-                {BATTLE_STYLE_TYPES.map(({ value, label }) => (
-                  <span key={value} className="radio-label">
-                    <input type="radio" name="battleStyleType" checked={s.battleStyleType === value}
-                      onChange={() => set("battleStyleType", value)} />
-                    {label}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="panel">
-            <span className="panel-title">Additional Pokemon per Trainer</span>
-            <div className="flex flex-wrap gap-4">
-              {[
-                { label: "Boss (Rival / E4 / Champion)", key: "additionalBossTrainerPokemon", tip: tooltips.additionalBossTrainerPokemon },
-                { label: "Important Trainer", key: "additionalImportantTrainerPokemon", tip: tooltips.additionalImportantTrainerPokemon },
-                { label: "Regular Trainer", key: "additionalRegularTrainerPokemon", tip: tooltips.additionalRegularTrainerPokemon },
-              ].map(({ label, key, tip }) => (
-                <div key={key} className="flex items-center gap-1.5">
-                  <span className="text-sm text-gray-700">{label}:<Tooltip text={tip} /></span>
-                  <select className="select-field" value={(s as never)[key]}
-                    onChange={e => set(key as keyof UPRSettings, Number(e.target.value) as never)}>
-                    {[0, 1, 2, 3].map(n => <option key={n} value={n}>+{n}</option>)}
-                  </select>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="panel">
-            <span className="panel-title">Evolution Behavior</span>
-            <div className="field-row">
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.trainersEvolveTheirPokemon}
-                  onChange={e => set("trainersEvolveTheirPokemon", e.target.checked)} />
-                Evolve Trainer Pokemon by Expected Level<Tooltip text={tooltips.trainersEvolveTheirPokemon} />
-              </span>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.banPrematureEvos}
-                  onChange={e => set("banPrematureEvos", e.target.checked)} />
-                Ban Premature Evolutions<Tooltip text={tooltips.banPrematureEvos} />
-              </span>
-            </div>
-            {s.trainersEvolveTheirPokemon && (
-              <div className="sub-row items-center">
-                <span className="text-xs text-gray-500">Evolution level modifier:<Tooltip text={tooltips.trainersEvolutionLevelModifier} /></span>
-                <input type="range" min={-100} max={155} className="w-36"
-                  value={s.trainersEvolutionLevelModifier}
-                  onChange={e => set("trainersEvolutionLevelModifier", Number(e.target.value))} />
-                <span className="text-sm text-gray-700 w-14 font-mono">
-                  {s.trainersEvolutionLevelModifier >= 0 ? `+${s.trainersEvolutionLevelModifier}` : s.trainersEvolutionLevelModifier}%
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="panel">
-            <span className="panel-title">Held Items</span>
-            <div className="field-row mb-1">
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.randomizeHeldItemsForBossTrainerPokemon}
-                  onChange={e => set("randomizeHeldItemsForBossTrainerPokemon", e.target.checked)} />
-                Boss Trainers<Tooltip text={tooltips.randomizeHeldItemsForBossTrainerPokemon} />
-              </span>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.randomizeHeldItemsForImportantTrainerPokemon}
-                  onChange={e => set("randomizeHeldItemsForImportantTrainerPokemon", e.target.checked)} />
-                Important Trainers<Tooltip text={tooltips.randomizeHeldItemsForImportantTrainerPokemon} />
-              </span>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.randomizeHeldItemsForRegularTrainerPokemon}
-                  onChange={e => set("randomizeHeldItemsForRegularTrainerPokemon", e.target.checked)} />
-                Regular Trainers<Tooltip text={tooltips.randomizeHeldItemsForRegularTrainerPokemon} />
-              </span>
-            </div>
-
-            {(s.randomizeHeldItemsForBossTrainerPokemon ||
-              s.randomizeHeldItemsForImportantTrainerPokemon ||
-              s.randomizeHeldItemsForRegularTrainerPokemon) && (
-              <div className="sub-options">
-                <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  <span className="checkbox-label">
-                    <input type="checkbox" checked={s.consumableItemsOnlyForTrainerPokemon}
-                      onChange={e => set("consumableItemsOnlyForTrainerPokemon", e.target.checked)} />
-                    Consumable Items Only<Tooltip text={tooltips.consumableItemsOnlyForTrainerPokemon} />
-                  </span>
-                  <span className="checkbox-label">
-                    <input type="checkbox" checked={s.sensibleItemsOnlyForTrainerPokemon}
-                      onChange={e => set("sensibleItemsOnlyForTrainerPokemon", e.target.checked)} />
-                    Sensible Items Only<Tooltip text={tooltips.sensibleItemsOnlyForTrainerPokemon} />
-                  </span>
-                  <span className="checkbox-label">
-                    <input type="checkbox" checked={s.highestLevelOnlyGetsItemsForTrainerPokemon}
-                      onChange={e => set("highestLevelOnlyGetsItemsForTrainerPokemon", e.target.checked)} />
-                    Highest Level Only Gets Items<Tooltip text={tooltips.highestLevelOnlyGetsItemsForTrainerPokemon} />
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="panel">

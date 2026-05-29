@@ -166,42 +166,44 @@ export function WildPokemonTab({ s, set, rom }: Props) {
               </span>
             </div>
 
-            <div>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.randomizeWildPokemonHeldItems}
-                  onChange={e => set("randomizeWildPokemonHeldItems", e.target.checked)} />
-                Randomize Held Items<Tooltip text={tooltips.randomizeWildPokemonHeldItems} />
-              </span>
-              {s.randomizeWildPokemonHeldItems && (
-                <div className="sub-row">
-                  <span className="checkbox-label">
-                    <input type="checkbox" checked={s.banBadRandomWildPokemonHeldItems}
-                      onChange={e => set("banBadRandomWildPokemonHeldItems", e.target.checked)} />
-                    Ban Bad Held Items<Tooltip text={tooltips.banBadRandomWildPokemonHeldItems} />
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <span className="checkbox-label">
-                <input type="checkbox" checked={s.useMinimumCatchRate}
-                  onChange={e => set("useMinimumCatchRate", e.target.checked)} />
-                Set Minimum Catch Rate<Tooltip text={tooltips.useMinimumCatchRate} />
-              </span>
-              {s.useMinimumCatchRate && (
-                <div className="sub-row">
-                  <span className="text-xs text-gray-500">Level:</span>
-                  <select className="select-field" value={s.minimumCatchRateLevel}
-                    onChange={e => set("minimumCatchRateLevel", Number(e.target.value))}>
-                    {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-
           </div>
         )}
+
+        {/* Held Items — engine randomizes them whether or not species are randomized */}
+        <div className={s.randomizeWildPokemon ? "" : "mt-2"}>
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.randomizeWildPokemonHeldItems}
+              onChange={e => set("randomizeWildPokemonHeldItems", e.target.checked)} />
+            Randomize Held Items<Tooltip text={tooltips.randomizeWildPokemonHeldItems} />
+          </span>
+          {s.randomizeWildPokemonHeldItems && (
+            <div className="sub-row">
+              <span className="checkbox-label">
+                <input type="checkbox" checked={s.banBadRandomWildPokemonHeldItems}
+                  onChange={e => set("banBadRandomWildPokemonHeldItems", e.target.checked)} />
+                Ban Bad Held Items<Tooltip text={tooltips.banBadRandomWildPokemonHeldItems} />
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Minimum Catch Rate — engine applies it independently of encounter randomization */}
+        <div className="mt-2">
+          <span className="checkbox-label">
+            <input type="checkbox" checked={s.useMinimumCatchRate}
+              onChange={e => set("useMinimumCatchRate", e.target.checked)} />
+            Set Minimum Catch Rate<Tooltip text={tooltips.useMinimumCatchRate} />
+          </span>
+          {s.useMinimumCatchRate && (
+            <div className="sub-row">
+              <span className="text-xs text-gray-500">Level:</span>
+              <select className="select-field" value={s.minimumCatchRateLevel}
+                onChange={e => set("minimumCatchRateLevel", Number(e.target.value))}>
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+          )}
+        </div>
 
         {/* Level Modifier — independent of wild randomization (engine applies it
             whenever wildLevelsModified is set, even with randomization off) */}
